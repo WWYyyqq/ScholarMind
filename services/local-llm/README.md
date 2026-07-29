@@ -28,6 +28,21 @@ services/local-llm/.venv/bin/python services/local-llm/smoke_test.py
 
 停止服务时在启动终端按 `Ctrl+C`。
 
+## 启动完整本地开发栈
+
+模型冒烟测试通过后，在另一个 WSL 终端执行：
+
+```bash
+.venv/bin/langgraph dev \
+  --config langgraph.local.json \
+  --allow-blocking \
+  --n-jobs-per-worker 1
+```
+
+该命令使用仅供本地开发的无认证配置。上游 `langgraph.json` 保留 Supabase
+认证，用于需要认证的部署场景。LangGraph 启动后会输出 API、API Docs 和
+Studio URL。
+
 ## ScholarMind 配置
 
 项目根目录 `.env` 使用以下本地配置：

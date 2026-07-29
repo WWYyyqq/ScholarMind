@@ -1,3 +1,66 @@
+# ScholarMind
+
+ScholarMind is an evidence-first deep-research project built from LangChain's
+Open Deep Research baseline. The current development baseline runs in WSL2 with
+a project-local Python environment and a local `Qwen3-14B-AWQ` model served by
+vLLM. Upstream attribution and the pinned Commit are recorded in
+[`docs/upstream.md`](docs/upstream.md).
+
+## Local development baseline
+
+### Environment layout
+
+- Pinned upstream Commit:
+  `d337ae32ed4ff8f4c6fbe192ba3bf1b2d6610799`
+- Application environment: `.venv` (Python 3.11, managed with `uv`)
+- Inference environment: `services/local-llm/.venv` (isolated from `.venv`)
+- Model weights: `/mnt/d/ScholarMindLocalLLM/models/Qwen3-14B-AWQ-modelscope`
+- Local model API: `http://[::1]:8000/v1`
+- LangGraph API: `http://127.0.0.1:2024`
+- Search on Day 1: disabled with `SEARCH_API=none`
+
+The model weights and download caches stay on drive D. Both virtual environments
+are project-specific and do not modify system Python or Conda environments.
+
+### Start the local stack
+
+Open two WSL terminals in the repository.
+
+Terminal 1:
+
+```bash
+./services/local-llm/start.sh
+```
+
+Wait for `Application startup complete`, then verify the model:
+
+```bash
+services/local-llm/.venv/bin/python services/local-llm/smoke_test.py
+```
+
+Terminal 2:
+
+```bash
+.venv/bin/langgraph dev \
+  --config langgraph.local.json \
+  --allow-blocking \
+  --n-jobs-per-worker 1
+```
+
+LangGraph prints the local API, API documentation, and Studio URL. The separate
+`langgraph.local.json` deliberately omits the upstream Supabase authentication
+block for local development only. Keep `langgraph.json` for authenticated
+deployment scenarios.
+
+Copy `.env.example` to `.env` when configuring a new checkout. Never commit
+`.env`; it is ignored by Git.
+
+Day 1 validation evidence is recorded in
+[`docs/day1_validation.md`](docs/day1_validation.md). The remaining schedule is
+in [`docs/DAILY_PLAN.md`](docs/DAILY_PLAN.md).
+
+---
+
 # 🔬 Open Deep Research
 
 <img width="1388" height="298" alt="full_diagram" src="https://github.com/user-attachments/assets/12a2371b-8be2-4219-9b48-90503eb43c69" />

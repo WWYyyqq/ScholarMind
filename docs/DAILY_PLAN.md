@@ -44,16 +44,19 @@
 
 **核心目标：** 在 WSL2 中稳定运行上游项目。
 
+**状态：** ✅ 已于 2026-07-29 提前完成。验收记录见
+[`docs/day1_validation.md`](day1_validation.md)。
+
 任务：
 
-- Fork 并克隆 Open Deep Research；
-- 固定上游 Commit，配置 `origin` 和 `upstream`；
-- 使用 `uv` 安装 Python 3.11 和项目依赖；
-- 创建独立 vLLM 环境，在 D 盘部署 Qwen3-14B-AWQ；
-- 配置本地 OpenAI 兼容 API，并将模型并发限制为 1；
-- 配置搜索 API（无 Key 时先用 `SEARCH_API=none` 完成本地模型验收）；
-- 启动 LangGraph Server 和 Studio；
-- 保存第一次完整运行 Trace。
+- [x] Fork 并克隆 Open Deep Research；
+- [x] 固定上游 Commit，配置 `origin` 和 `upstream`；
+- [x] 使用 `uv` 安装 Python 3.11 和项目依赖；
+- [x] 创建独立 vLLM 环境，在 D 盘部署 Qwen3-14B-AWQ；
+- [x] 配置本地 OpenAI 兼容 API，并将模型并发限制为 1；
+- [x] 配置搜索 API（无 Key 时先用 `SEARCH_API=none` 完成本地模型验收）；
+- [x] 启动 LangGraph Server 和 Studio；
+- [x] 保存第一次完整运行 Trace。
 
 产出：
 
