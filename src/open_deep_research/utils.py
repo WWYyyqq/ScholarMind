@@ -87,6 +87,7 @@ async def tavily_search(
         model=configurable.summarization_model,
         max_tokens=configurable.summarization_model_max_tokens,
         api_key=model_api_key,
+        base_url=get_base_url_for_model(configurable.summarization_model, config),
         tags=["langsmith:nostream"]
     ).with_structured_output(Summary).with_retry(
         stop_after_attempt=configurable.max_structured_output_retries
@@ -912,6 +913,13 @@ def get_api_key_for_model(model_name: str, config: RunnableConfig):
         elif model_name.startswith("google"):
             return os.getenv("GOOGLE_API_KEY")
         return None
+
+def get_base_url_for_model(model_name: str, config: RunnableConfig):
+    """Return an optional OpenAI-compatible base URL for a model."""
+    if not model_name.lower().startswith("openai:"):
+        return None
+    return Configuration.from_runnable_config(config).openai_base_url
+
 
 def get_tavily_api_key(config: RunnableConfig):
     """Get Tavily API key from environment or config."""

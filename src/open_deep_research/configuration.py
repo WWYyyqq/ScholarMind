@@ -118,6 +118,18 @@ class Configuration(BaseModel):
         }
     )
     # Model Configuration
+    openai_base_url: Optional[str] = Field(
+        default=None,
+        metadata={
+            "x_oap_ui_config": {
+                "type": "text",
+                "description": (
+                    "Optional OpenAI-compatible API base URL. Use this for a local "
+                    "vLLM server, for example http://[::1]:8000/v1."
+                ),
+            }
+        },
+    )
     summarization_model: str = Field(
         default="openai:gpt-4.1-mini",
         metadata={

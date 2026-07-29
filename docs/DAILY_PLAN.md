@@ -34,7 +34,7 @@
 - Kubernetes；
 - 多租户和完整权限；
 - 30～50 个大规模 Benchmark；
-- 本地大模型主流程。
+- 第二个本地模型或多模型路由。
 
 ---
 
@@ -49,7 +49,9 @@
 - Fork 并克隆 Open Deep Research；
 - 固定上游 Commit，配置 `origin` 和 `upstream`；
 - 使用 `uv` 安装 Python 3.11 和项目依赖；
-- 创建 `.env`，配置至少一个 LLM 和搜索 API；
+- 创建独立 vLLM 环境，在 D 盘部署 Qwen3-14B-AWQ；
+- 配置本地 OpenAI 兼容 API，并将模型并发限制为 1；
+- 配置搜索 API（无 Key 时先用 `SEARCH_API=none` 完成本地模型验收）；
 - 启动 LangGraph Server 和 Studio；
 - 保存第一次完整运行 Trace。
 
@@ -57,6 +59,7 @@
 
 - 可运行的本地仓库；
 - `docs/upstream.md`；
+- `services/local-llm/` 启动脚本、固定依赖和冒烟测试；
 - 初始环境说明。
 
 验收：
