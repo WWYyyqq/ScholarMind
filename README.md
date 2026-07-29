@@ -55,9 +55,10 @@ deployment scenarios.
 Copy `.env.example` to `.env` when configuring a new checkout. Never commit
 `.env`; it is ignored by Git.
 
-Day 1 validation evidence is recorded in
-[`docs/day1_validation.md`](docs/day1_validation.md). The remaining schedule is
-in [`docs/DAILY_PLAN.md`](docs/DAILY_PLAN.md).
+Development plans and daily engineering logs are organized under
+[`docs/development/`](docs/development/README.md). Start with the
+[`42-day plan`](docs/development/PLAN.md) and the detailed
+[`Day 1 log`](docs/development/daily/2026-07-29-day-01.md).
 
 ---
 

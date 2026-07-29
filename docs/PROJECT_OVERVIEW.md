@@ -27,7 +27,7 @@ Claim-Evidence Verification
 
 完整的逐日任务、验收标准和范围控制见：
 
-> [42 天每日开发计划](docs/DAILY_PLAN.md)
+> [42 天每日开发计划](development/PLAN.md)
 
 ## v0.1.0 核心范围
 
