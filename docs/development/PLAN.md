@@ -75,24 +75,27 @@
 
 **核心目标：** 能脱离源码解释系统工作流。
 
+**状态：** ✅ 已于 2026-07-30 提前完成。详细记录见
+[`daily/2026-07-30-day-02.md`](daily/2026-07-30-day-02.md)。
+
 任务：
 
-- 阅读主图、状态、配置、Prompt 和工具模块；
-- 梳理 Clarify、Brief、Supervisor、Researcher、Compression、Writer；
-- 标出每个状态字段的写入者与读取者；
-- 记录并行 Researcher 和 Reducer 的工作方式。
+- [x] 阅读主图、状态、配置、Prompt 和工具模块；
+- [x] 梳理 Clarify、Brief、Supervisor、Researcher、Compression、Writer；
+- [x] 标出每个状态字段的写入者与读取者；
+- [x] 记录并行 Researcher 和 Reducer 的工作方式。
 
 产出：
 
-- `docs/baseline_architecture.md`；
-- Baseline Mermaid 流程图；
-- 状态字段流向表。
+- [x] `docs/baseline_architecture.md`；
+- [x] Baseline Mermaid 流程图；
+- [x] 状态字段流向表。
 
 验收：
 
-- 能解释 Supervisor 为什么委派子任务；
-- 能解释 Researcher 为什么压缩结果；
-- 能说明异常和 Token 超限的处理路径。
+- [x] 能解释 Supervisor 为什么委派子任务；
+- [x] 能解释 Researcher 为什么压缩结果；
+- [x] 能说明异常和 Token 超限的处理路径。
 
 ## Day 3｜8 月 1 日：建立 Baseline Runner
 
