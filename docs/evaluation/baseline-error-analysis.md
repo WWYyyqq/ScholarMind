@@ -1,5 +1,7 @@
 # Open Deep Research Baseline 错误分析
 
+导航：[文档中心](../README.md) · [评测与论文数据](README.md) · [Baseline 架构](../architecture/baseline.md)
+
 ## 1. 结论
 
 本次评测使用本地 `Qwen3-14B-AWQ`、vLLM 0.26.0 和

@@ -111,7 +111,7 @@ Open Deep Research is compatible with many different LLMs:
 pip install open-deep-research
 ```
 
-See [src/legacy/graph.ipynb](src/legacy/graph.ipynb) and [src/legacy/multi_agent.ipynb](src/legacy/multi_agent.ipynb) for example usage in a Jupyter notebook:
+See [src/legacy/graph.ipynb](graph.ipynb) and [src/legacy/multi_agent.ipynb](multi_agent.ipynb) for example usage in a Jupyter notebook:
 
 ## Open Deep Research Implementations
 

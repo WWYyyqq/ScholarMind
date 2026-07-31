@@ -23,7 +23,7 @@
   "derivation": null,
   "tuning_allowed": false,
   "provenance": {
-    "annotation_spec": "docs/paper_gold_annotation.md",
+    "annotation_spec": "docs/evaluation/paper-dataset/silver-to-gold.md",
     "source_dataset_release": null,
     "questions_silver_file_sha256": null,
     "source_checksums_file_sha256": null,

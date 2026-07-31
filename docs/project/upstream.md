@@ -1,5 +1,7 @@
 # Upstream Baseline
 
+导航：[文档中心](../README.md) · [项目总览](overview.md)
+
 ScholarMind is built on top of LangChain's Open Deep Research project.
 
 ## Pinned baseline

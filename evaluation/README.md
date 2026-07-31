@@ -3,17 +3,19 @@
 本目录保存 ScholarMind 的固定评测问题、结果 Schema、原始运行结果和人工标注。
 评测数据与实现分开，使后续架构改造能够与同一批 Baseline 结果对照。
 
+
+人类可读的评测方法、错误分析和论文数据说明统一从 [评测文档索引](../docs/evaluation/README.md) 进入。
 ## 目录
 
 - `cases/baseline.jsonl`：8 个固定问题，每个问题拥有稳定 `case_id`；
 - `schemas/baseline_result.schema.json`：单条运行结果的 JSON Schema；
 - `results/`：Runner 逐条追加的原始 JSONL；
 - `labels/`：Day 4 人工事实与引用标注。
-- `templates/`：论文 Silver → Gold 标注所用的公开虚构空模板。
+- [`docs/evaluation/paper-dataset/templates/`](../docs/evaluation/paper-dataset/templates/)：论文 Silver → Gold 标注所用的公开空模板。
 
 ## 论文 Silver → Gold 标注
 
-程序生成的论文问题只是 Silver 候选，必须人工查阅 PDF、复核问题/答案/证据并处理冲突后，才能形成 Gold。完整步骤见 [论文评测集 Silver → Gold 人工标注手册](../docs/paper_gold_annotation.md)。
+程序生成的论文问题只是 Silver 候选，必须人工查阅 PDF、复核问题/答案/证据并处理冲突后，才能形成 Gold。完整步骤见 [论文评测集 Silver → Gold 人工标注手册](../docs/evaluation/paper-dataset/silver-to-gold.md)。
 
 公开仓库只保存规范和虚构模板；真实论文内容、逐题审阅记录及 Gold 数据保存在本地私有目录。
 

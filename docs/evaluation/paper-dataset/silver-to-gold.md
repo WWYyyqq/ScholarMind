@@ -1,5 +1,7 @@
 # 论文评测集 Silver → Gold 人工标注操作手册
 
+导航：[文档中心](../../README.md) · [评测与论文数据](../README.md) · [论文数据集说明](README.md) · [空模板](templates/README.md)
+
 > 适用范围：ScholarMind 论文问答评测集。本文面向第一次做数据标注的开发者，目标是把程序生成的 Silver 候选问题，经过人工检查、复核和裁决，整理为可重复使用的 Gold 评测集。
 
 规范版本：`1.0-draft`。在正式 Review/Gold Schema、构建器和验证器落地前，本文规定的是人工操作协议，不代表自动化 Gold 流程已经完成。
@@ -37,8 +39,8 @@ Gold 不是“把 Silver 文件改个名字”。它必须保留输入版本、�
 4. **不要用测试集调提示词、选模型或改检索参数。** Gold 测试集只用于最终评价，`tuning_allowed` 必须为 `false`。
 5. **不要使用 `git add -f` 绕过忽略规则。** 提交前运行 `git status`，确认没有 PDF、真实 JSONL 或个人路径。
 6. 公开仓库只保存本手册和虚构的空模板：
-   - [审阅记录模板](../evaluation/templates/paper_question_review.template.json)
-   - [Gold 记录模板](../evaluation/templates/paper_question_gold.template.json)
+   - [审阅记录模板](templates/review-record.template.json)
+   - [Gold 记录模板](templates/gold-question.template.json)
 
 如果只有一位标注者，两个轮次使用同一个匿名代号（如 `reviewer-a`），不要在公开材料中写真实姓名、邮箱或本机路径。
 
@@ -243,7 +245,7 @@ rg -n -C 12 '"block_id": "<BLOCK_ID>"' "<DATASET_OUTPUT>/documents/<PAPER_ID>.js
 
 ## 10. 如何填写审阅 JSONL
 
-JSONL 是“一行一个完整 JSON 对象”，不是一个外层数组。复制[公开审阅模板](../evaluation/templates/paper_question_review.template.json)到私有目录后，每道题最终只保留一条合并记录。
+JSONL 是“一行一个完整 JSON 对象”，不是一个外层数组。复制[公开审阅模板](templates/review-record.template.json)到私有目录后，每道题最终只保留一条合并记录。
 
 公开模板为了便于阅读使用多行缩进。实际保存 `questions.review.jsonl` 时，要把每个对象压缩成一行；也可以先将每题保存成单独的 `.json`，复核无误后再导出。
 

@@ -1,5 +1,7 @@
 # Open Deep Research Baseline 架构说明
 
+导航：[文档中心](../README.md) · [评测文档](../evaluation/README.md)
+
 > Day 2 产出。分析基于固定上游 Commit
 > `d337ae32ed4ff8f4c6fbe192ba3bf1b2d6610799`，并包含 ScholarMind Day 1
 > 对本地 OpenAI 兼容 Base URL 的适配。
