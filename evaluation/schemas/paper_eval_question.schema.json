@@ -1,0 +1,140 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "paper_eval_question.schema.json",
+  "title": "ScholarMind silver extractive evaluation question",
+  "description": "A machine-generated question pending human review; this is not a gold label.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "question_id",
+    "paper_id",
+    "work_id",
+    "question_type",
+    "question",
+    "answer",
+    "evidence",
+    "label_quality",
+    "review_status"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "question_id": {
+      "type": "string",
+      "pattern": "^eval-[0-9a-f]{16}$"
+    },
+    "paper_id": {
+      "type": "string",
+      "pattern": "^paper-[0-9a-f]{16}$"
+    },
+    "work_id": {
+      "type": "string",
+      "pattern": "^work-[0-9a-f]{16}$"
+    },
+    "question_type": {
+      "enum": [
+        "abstract_evidence",
+        "method_section_locator"
+      ]
+    },
+    "question": {
+      "type": "string",
+      "minLength": 1
+    },
+    "answer": {
+      "type": "string",
+      "minLength": 1
+    },
+    "evidence": {
+      "type": "object",
+      "required": [
+        "page_number",
+        "bbox",
+        "bbox_normalized_top_left",
+        "text",
+        "block_ids"
+      ],
+      "properties": {
+        "page_number": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "bbox": {
+          "$ref": "#/$defs/bbox"
+        },
+        "bbox_normalized_top_left": {
+          "$ref": "#/$defs/normalizedBbox"
+        },
+        "text": {
+          "type": "string",
+          "minLength": 1
+        },
+        "block_ids": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"type": "string", "pattern": "^p[1-9][0-9]*-b[0-9]+"}
+        }
+      },
+      "additionalProperties": false
+    },
+    "label_quality": {
+      "const": "silver_extractive"
+    },
+    "review_status": {
+      "const": "machine_generated_pending_human_review"
+    }
+  },
+  "$defs": {
+    "bbox": {
+      "type": "array",
+      "prefixItems": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "number"
+        },
+        {
+          "type": "number"
+        },
+        {
+          "type": "number"
+        }
+      ],
+      "minItems": 4,
+      "maxItems": 4,
+      "items": false
+    },
+    "normalizedBbox": {
+      "type": "array",
+      "prefixItems": [
+        {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        }
+      ],
+      "minItems": 4,
+      "maxItems": 4,
+      "items": false
+    }
+  },
+  "additionalProperties": false
+}

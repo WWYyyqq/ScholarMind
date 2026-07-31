@@ -1,0 +1,178 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "paper_chunk.schema.json",
+  "title": "ScholarMind page-bounded paper chunk",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "chunk_id",
+    "paper_id",
+    "work_id",
+    "title",
+    "language",
+    "category",
+    "indexable",
+    "index_policy",
+    "dataset_split",
+    "tuning_allowed",
+    "page_number",
+    "section",
+    "text",
+    "char_count",
+    "token_estimate",
+    "bbox",
+    "bbox_normalized_top_left",
+    "block_ids",
+    "block_orders",
+    "content_sha256",
+    "previous_chunk_id",
+    "next_chunk_id"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "chunk_id": {
+      "$ref": "#/$defs/chunkId"
+    },
+    "paper_id": {
+      "$ref": "#/$defs/paperId"
+    },
+    "work_id": {
+      "$ref": "#/$defs/workId"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1
+    },
+    "language": {
+      "enum": [
+        "en",
+        "zh",
+        "unknown"
+      ]
+    },
+    "category": {
+      "type": "string",
+      "minLength": 1
+    },
+    "indexable": {
+      "type": "boolean"
+    },
+    "index_policy": {
+      "enum": [
+        "primary",
+        "auxiliary_translation",
+        "primary_translation_only",
+        "skip_semantic_variant"
+      ]
+    },
+    "dataset_split": {
+      "enum": ["development", "test"]
+    },
+    "tuning_allowed": {
+      "type": "boolean"
+    },
+    "page_number": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "section": {
+      "type": "string",
+      "minLength": 1
+    },
+    "text": {
+      "type": "string",
+      "minLength": 1
+    },
+    "char_count": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "token_estimate": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "bbox": {
+      "$ref": "#/$defs/bbox"
+    },
+    "bbox_normalized_top_left": {
+      "type": "array",
+      "minItems": 4,
+      "maxItems": 4,
+      "items": {"type": "number", "minimum": 0, "maximum": 1}
+    },
+    "block_ids": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"type": "string", "pattern": "^p[1-9][0-9]*-b[0-9]+"}
+    },
+    "block_orders": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "integer",
+        "minimum": 0
+      }
+    },
+    "content_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "previous_chunk_id": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/chunkId"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "next_chunk_id": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/chunkId"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "$defs": {
+    "chunkId": {
+      "type": "string",
+      "pattern": "^chunk-[0-9a-f]{16}$"
+    },
+    "paperId": {
+      "type": "string",
+      "pattern": "^paper-[0-9a-f]{16}$"
+    },
+    "workId": {
+      "type": "string",
+      "pattern": "^work-[0-9a-f]{16}$"
+    },
+    "bbox": {
+      "type": "array",
+      "prefixItems": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "number"
+        },
+        {
+          "type": "number"
+        },
+        {
+          "type": "number"
+        }
+      ],
+      "minItems": 4,
+      "maxItems": 4,
+      "items": false
+    }
+  },
+  "additionalProperties": false
+}

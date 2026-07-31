@@ -9,6 +9,7 @@
 - [`PLAN.md`](PLAN.md)：42 天总体开发计划、每日目标与验收标准。
 - [`daily/`](daily/)：每日开发日志。
 - [`daily/TEMPLATE.md`](daily/TEMPLATE.md)：新日志模板。
+- [`supplemental/`](supplemental/)：不改变 42 天 Day 状态的专项工程记录。
 
 ## 每日日志索引
 
@@ -18,6 +19,12 @@
 | Day 2 | 2026-07-30 | 理解 Baseline 状态图 | ✅ 完成 | [详细日志](daily/2026-07-30-day-02.md) | `aa2b04a` |
 | Day 3 | 2026-07-31 | 建立可重复 Baseline Runner | ✅ 完成 | [详细日志](daily/2026-07-31-day-03.md) | `0e5c694` |
 | Day 4 | 2026-07-31 | 完成 Baseline 错误分析 | ✅ 完成 | [详细日志](daily/2026-07-31-day-04.md) | `d9b9b59` |
+
+## 专项记录
+
+| 日期 | 主题 | 状态 | 记录 |
+| --- | --- | --- | --- |
+| 2026-08-01 | 97 篇本地论文数据预处理 | ✅ 完成并通过独立验证 | [详细日志](supplemental/2026-08-01-paper-dataset-preparation.md) |
 
 ## 记录规范
 

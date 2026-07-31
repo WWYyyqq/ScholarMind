@@ -32,6 +32,7 @@ Claim-Evidence / Citation Verification
 | Day 2：理解 Baseline 状态图 | ✅ 完成 | [架构文档](docs/baseline_architecture.md) · [详细日志](docs/development/daily/2026-07-30-day-02.md) |
 | Day 3：可重复 Baseline Runner | ✅ 完成 | [评测说明](evaluation/README.md) · [详细日志](docs/development/daily/2026-07-31-day-03.md) |
 | Day 4：Baseline 错误分析 | ✅ 完成 | [错误分析](docs/baseline_error_analysis.md) · [详细日志](docs/development/daily/2026-07-31-day-04.md) |
+| 论文数据预处理（专项） | ✅ 完成并通过独立验证 | [数据说明](docs/paper_dataset.md) · [详细日志](docs/development/supplemental/2026-08-01-paper-dataset-preparation.md) |
 | 搜索能力 | ⏳ 未接入 | 当前使用 `SEARCH_API=none` |
 | 简历可投递版本 | 计划 2026-08-26 | Day 28 |
 | `v0.1.0` | 计划 2026-09-09 | Day 42 |
@@ -47,6 +48,8 @@ Claim-Evidence / Citation Verification
 - [Day 3 详细开发日志](docs/development/daily/2026-07-31-day-03.md)
 - [Baseline 错误分析](docs/baseline_error_analysis.md)
 - [Day 4 详细开发日志](docs/development/daily/2026-07-31-day-04.md)
+- [本地论文数据集预处理说明](docs/paper_dataset.md)
+- [论文数据预处理专项日志](docs/development/supplemental/2026-08-01-paper-dataset-preparation.md)
 - [每日日志模板](docs/development/daily/TEMPLATE.md)
 
 ## v0.1.0 核心范围

@@ -1,0 +1,257 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "paper_manifest.schema.json",
+  "title": "ScholarMind paper manifest record",
+  "description": "One file-level PDF record. The same schema also validates canonical_manifest records.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "file_id",
+    "paper_id",
+    "work_id",
+    "relative_path",
+    "filename",
+    "sha256",
+    "byte_size",
+    "pages",
+    "title",
+    "normalized_title",
+    "language",
+    "document_type",
+    "year",
+    "category",
+    "study_type",
+    "collection_tags",
+    "has_code_hint",
+    "is_exact_duplicate",
+    "duplicate_of_file_id",
+    "canonical_relative_path",
+    "translation_of_paper_id",
+    "semantic_duplicate_of_paper_id",
+    "index_policy",
+    "indexable",
+    "parser_status",
+    "dataset_split",
+    "tuning_allowed"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "file_id": {
+      "$ref": "#/$defs/fileId"
+    },
+    "paper_id": {
+      "$ref": "#/$defs/paperId"
+    },
+    "work_id": {
+      "$ref": "#/$defs/workId"
+    },
+    "relative_path": {
+      "$ref": "#/$defs/relativePath"
+    },
+    "filename": {
+      "type": "string",
+      "minLength": 5,
+      "pattern": "\\.[Pp][Dd][Ff]$"
+    },
+    "sha256": {
+      "$ref": "#/$defs/sha256"
+    },
+    "byte_size": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "pages": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1
+    },
+    "normalized_title": {
+      "type": "string",
+      "minLength": 1
+    },
+    "language": {
+      "enum": [
+        "en",
+        "zh",
+        "unknown"
+      ]
+    },
+    "document_type": {
+      "enum": [
+        "original",
+        "translation"
+      ]
+    },
+    "year": {
+      "anyOf": [
+        {
+          "type": "integer",
+          "minimum": 1990,
+          "maximum": 2026
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "category": {
+      "type": "string",
+      "minLength": 1
+    },
+    "study_type": {
+      "enum": [
+        "research",
+        "survey"
+      ]
+    },
+    "collection_tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "has_code_hint": {
+      "type": "boolean"
+    },
+    "is_exact_duplicate": {
+      "type": "boolean"
+    },
+    "duplicate_of_file_id": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/fileId"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "canonical_relative_path": {
+      "$ref": "#/$defs/relativePath"
+    },
+    "translation_of_paper_id": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/paperId"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "semantic_duplicate_of_paper_id": {
+      "anyOf": [
+        {"$ref": "#/$defs/paperId"},
+        {"type": "null"}
+      ]
+    },
+    "index_policy": {
+      "enum": [
+        "primary",
+        "auxiliary_translation",
+        "primary_translation_only",
+        "skip_semantic_variant",
+        "skip_exact_duplicate"
+      ]
+    },
+    "indexable": {
+      "type": "boolean"
+    },
+    "parser_status": {
+      "enum": [
+        "pending",
+        "success",
+        "failed",
+        "needs_ocr"
+      ]
+    },
+    "dataset_split": {
+      "enum": [
+        "development",
+        "test"
+      ]
+    },
+    "tuning_allowed": {
+      "type": "boolean"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "is_exact_duplicate": {
+            "const": true
+          }
+        },
+        "required": [
+          "is_exact_duplicate"
+        ]
+      },
+      "then": {
+        "properties": {
+          "duplicate_of_file_id": {
+            "$ref": "#/$defs/fileId"
+          },
+          "indexable": {
+            "const": false
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "duplicate_of_file_id": {
+            "type": "null"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "dataset_split": {
+            "const": "test"
+          }
+        },
+        "required": [
+          "dataset_split"
+        ]
+      },
+      "then": {
+        "properties": {
+          "tuning_allowed": {
+            "const": false
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "fileId": {
+      "type": "string",
+      "pattern": "^file-[0-9a-f]{16}$"
+    },
+    "paperId": {
+      "type": "string",
+      "pattern": "^paper-[0-9a-f]{16}$"
+    },
+    "workId": {
+      "type": "string",
+      "pattern": "^work-[0-9a-f]{16}$"
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "relativePath": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^(?!/)(?![A-Za-z]:[\\\\/]).+"
+    }
+  },
+  "additionalProperties": false
+}
