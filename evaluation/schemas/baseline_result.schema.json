@@ -1,0 +1,106 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/WWYyyqq/ScholarMind/evaluation/schemas/baseline_result.schema.json",
+  "title": "ScholarMind Baseline Result",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "record_id",
+    "run_id",
+    "attempt",
+    "case_id",
+    "question",
+    "status",
+    "started_at",
+    "completed_at",
+    "thread_id",
+    "graph_run_id",
+    "configuration",
+    "metrics",
+    "source_urls",
+    "final_report",
+    "error"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "record_id": {"type": "string", "format": "uuid"},
+    "run_id": {"type": "string", "minLength": 1},
+    "attempt": {"type": "integer", "minimum": 1},
+    "case_id": {"type": "string", "pattern": "^baseline-[0-9]{3}$"},
+    "category": {"type": "string"},
+    "question": {"type": "string", "minLength": 1},
+    "status": {"enum": ["success", "report_error", "failed"]},
+    "started_at": {"type": "string", "format": "date-time"},
+    "completed_at": {"type": "string", "format": "date-time"},
+    "thread_id": {"type": "string", "format": "uuid"},
+    "graph_run_id": {"type": ["string", "null"]},
+    "configuration": {
+      "type": "object",
+      "required": [
+        "allow_clarification",
+        "search_api",
+        "max_concurrent_research_units",
+        "max_researcher_iterations",
+        "max_react_tool_calls",
+        "research_model",
+        "compression_model",
+        "final_report_model"
+      ]
+    },
+    "metrics": {
+      "type": "object",
+      "required": [
+        "duration_ms",
+        "node_counts",
+        "node_duration_ms",
+        "llm_calls",
+        "tokens",
+        "tool_calls",
+        "researcher_count",
+        "sources_count"
+      ],
+      "properties": {
+        "duration_ms": {"type": "integer", "minimum": 0},
+        "node_counts": {"type": "object"},
+        "node_duration_ms": {"type": "object"},
+        "llm_calls": {"type": "integer", "minimum": 0},
+        "tokens": {
+          "type": "object",
+          "required": ["input", "output", "total"],
+          "properties": {
+            "input": {"type": "integer", "minimum": 0},
+            "output": {"type": "integer", "minimum": 0},
+            "total": {"type": "integer", "minimum": 0}
+          }
+        },
+        "tool_calls": {
+          "type": "object",
+          "required": ["total", "search", "by_name"],
+          "properties": {
+            "total": {"type": "integer", "minimum": 0},
+            "search": {"type": "integer", "minimum": 0},
+            "requested_search": {"type": "integer", "minimum": 0},
+            "executed_total": {"type": "integer", "minimum": 0},
+            "by_name": {"type": "object"},
+            "executed_by_name": {"type": "object"}
+          }
+        },
+        "researcher_count": {"type": "integer", "minimum": 0},
+        "compression_count": {"type": "integer", "minimum": 0},
+        "degraded": {"type": "boolean"},
+        "event_errors": {
+          "type": "array",
+          "items": {"type": "string"}
+        },
+        "sources_count": {"type": "integer", "minimum": 0}
+      }
+    },
+    "source_urls": {
+      "type": "array",
+      "items": {"type": "string", "format": "uri"}
+    },
+    "final_report": {"type": "string"},
+    "error": {"type": ["string", "null"]}
+  },
+  "additionalProperties": true
+}
