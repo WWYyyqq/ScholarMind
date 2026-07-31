@@ -1,0 +1,1 @@
+"""ScholarMind project automation scripts."""

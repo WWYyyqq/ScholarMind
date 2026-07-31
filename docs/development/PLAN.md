@@ -97,49 +97,51 @@
 - [x] 能解释 Researcher 为什么压缩结果；
 - [x] 能说明异常和 Token 超限的处理路径。
 
-## Day 3｜8 月 1 日：建立 Baseline Runner
+## Day 3｜7 月 31 日：建立 Baseline Runner（✅ 已完成）
 
 **核心目标：** 让后续改进都有可重复对照。
 
 任务：
 
-- 准备 8～10 个固定测试问题；
-- 编写批量执行脚本；
-- 记录报告、来源、延迟、Token、搜索次数和工具调用数；
-- 为运行结果建立 JSONL Schema。
+- [x] 准备 8 个固定测试问题；
+- [x] 编写支持续跑与重跑的批量执行脚本；
+- [x] 记录报告、来源、延迟、Token、搜索次数和工具调用数；
+- [x] 为运行结果建立 JSONL Schema。
 
 产出：
 
-- `scripts/run_baseline.py`；
-- `evaluation/cases/baseline.jsonl`；
-- 第一批运行结果。
+- [x] `scripts/run_baseline.py`；
+- [x] `evaluation/cases/baseline.jsonl`；
+- [x] `evaluation/results/day3-qwen3-local-20260731.jsonl`；
+- [x] `evaluation/schemas/baseline_result.schema.json`。
 
 验收：
 
-- 一条命令可批量运行；
-- 中断后不覆盖历史结果；
-- 每个任务拥有稳定 `case_id`。
+- [x] 一条命令可批量运行；
+- [x] 中断后不覆盖历史结果；
+- [x] 每个任务拥有稳定 `case_id`。
 
-## Day 4｜8 月 2 日：Baseline 错误分析
+## Day 4｜7 月 31 日：Baseline 错误分析（✅ 已完成）
 
 **核心目标：** 定义 ScholarMind 真正要解决的问题。
 
 任务：
 
-- 人工检查至少 20 条事实结论；
-- 标记引用不存在、引用不支持、时间错误、数字错误、范围遗漏；
-- 计算 Citation Precision、Citation Coverage、平均来源数和平均耗时；
-- 整理三个最优先问题。
+- [x] 人工检查 32 条事实结论；
+- [x] 标记引用不存在、引用不支持、时间错误、数字错误和范围遗漏；
+- [x] 计算 Citation Precision、Citation Coverage、平均来源数和平均耗时；
+- [x] 整理三个最优先问题。
 
 产出：
 
-- `docs/baseline_error_analysis.md`；
-- `evaluation/labels/baseline.csv`。
+- [x] `docs/baseline_error_analysis.md`；
+- [x] `evaluation/labels/baseline.csv`；
+- [x] `evaluation/results/day4-summary-20260731.json`。
 
 验收：
 
-- 每个核心改造项都能对应到一个 Baseline 缺陷；
-- 不以主观感受代替可复现样例。
+- [x] 每个核心改造项都能对应到一个 Baseline 缺陷；
+- [x] 结论均可回溯到固定 case、原始输出、人工标签和证据 URL。
 
 ## Day 5｜8 月 3 日：隔离子研究任务失败
 

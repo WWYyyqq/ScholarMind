@@ -30,6 +30,8 @@ Claim-Evidence / Citation Verification
 | --- | --- | --- |
 | Day 1：环境与本地 Baseline | ✅ 完成并复验 | [详细日志](docs/development/daily/2026-07-29-day-01.md) |
 | Day 2：理解 Baseline 状态图 | ✅ 完成 | [架构文档](docs/baseline_architecture.md) · [详细日志](docs/development/daily/2026-07-30-day-02.md) |
+| Day 3：可重复 Baseline Runner | ✅ 完成 | [评测说明](evaluation/README.md) · [详细日志](docs/development/daily/2026-07-31-day-03.md) |
+| Day 4：Baseline 错误分析 | ✅ 完成 | [错误分析](docs/baseline_error_analysis.md) · [详细日志](docs/development/daily/2026-07-31-day-04.md) |
 | 搜索能力 | ⏳ 未接入 | 当前使用 `SEARCH_API=none` |
 | 简历可投递版本 | 计划 2026-08-26 | Day 28 |
 | `v0.1.0` | 计划 2026-09-09 | Day 42 |
@@ -41,6 +43,10 @@ Claim-Evidence / Citation Verification
 - [Day 1 详细开发日志](docs/development/daily/2026-07-29-day-01.md)
 - [Baseline 架构说明](docs/baseline_architecture.md)
 - [Day 2 详细开发日志](docs/development/daily/2026-07-30-day-02.md)
+- [Baseline Runner、固定问题与结果说明](evaluation/README.md)
+- [Day 3 详细开发日志](docs/development/daily/2026-07-31-day-03.md)
+- [Baseline 错误分析](docs/baseline_error_analysis.md)
+- [Day 4 详细开发日志](docs/development/daily/2026-07-31-day-04.md)
 - [每日日志模板](docs/development/daily/TEMPLATE.md)
 
 ## v0.1.0 核心范围
@@ -78,8 +84,8 @@ GraphRAG、Kubernetes、多租户、第二个本地模型等功能不进入 `v0.
 | --- | --- | --- | --- |
 | 1 | Day 1 · 7/30 | 初始化开发环境 | ✅ 已提前完成 |
 | 1 | Day 2 · 7/31 | 理解 Baseline 状态图 | ✅ 已提前完成 |
-| 1 | Day 3 · 8/1 | 建立 Baseline Runner | 计划 |
-| 1 | Day 4 · 8/2 | Baseline 错误分析 | 计划 |
+| 1 | Day 3 · 8/1 | 建立 Baseline Runner | ✅ 已提前完成 |
+| 1 | Day 4 · 8/2 | Baseline 错误分析 | ✅ 已提前完成 |
 | 1 | Day 5 · 8/3 | 隔离子研究任务失败 | 计划 |
 | 1 | Day 6 · 8/4 | 建立 ScholarMind 模块骨架 | 计划 |
 | 1 | Day 7 · 8/5 | 第一周复盘与架构冻结 | 计划 |
