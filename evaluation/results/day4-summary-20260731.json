@@ -1,0 +1,38 @@
+{
+  "result_file_records": 13,
+  "latest_case_count": 8,
+  "latest_status_counts": {
+    "success": 8
+  },
+  "degraded_case_count": 8,
+  "average_duration_ms": 21563,
+  "average_total_tokens": 6767,
+  "average_sources": 4.12,
+  "total_executed_searches": 0,
+  "total_requested_searches": 13,
+  "claim_count": 32,
+  "citation_precision_percent": 21.43,
+  "citation_coverage_percent": 87.5,
+  "citation_source_validity_percent": 50.0,
+  "factual_accuracy_percent": 40.62,
+  "temporal_accuracy_percent": 33.33,
+  "numeric_accuracy_percent": 77.78,
+  "scope_completeness_percent": 40.62,
+  "error_type_counts": {
+    "api_error": 1,
+    "invalid_url": 18,
+    "scope_error": 4,
+    "syntax_error": 1,
+    "taxonomy_error": 1,
+    "technical_error": 6,
+    "temporal_error": 6,
+    "unsupported_mitigation": 1,
+    "wrong_source": 5
+  },
+  "metric_definitions": {
+    "citation_precision": "supported cited claims / claims with a citation",
+    "citation_coverage": "claims with a citation / all labeled factual claims",
+    "source_validity": "cited claims whose exact source target exists / cited claims",
+    "factual_accuracy": "factually correct claims / all labeled claims"
+  }
+}
