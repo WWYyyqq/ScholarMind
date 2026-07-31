@@ -24,7 +24,7 @@
 
 | 日期 | 主题 | 状态 | 记录 |
 | --- | --- | --- | --- |
-| 2026-08-01 | 97 篇本地论文数据预处理 | ✅ 完成并通过独立验证 | [详细日志](supplemental/2026-08-01-paper-dataset-preparation.md) |
+| 2026-08-01 | 97 篇本地论文数据预处理 | ✅ 完成并通过独立验证 | [详细日志](supplemental/2026-08-01-paper-dataset-preparation.md) · [标注手册](../paper_gold_annotation.md) |
 
 ## 记录规范
 
