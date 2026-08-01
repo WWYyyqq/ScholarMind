@@ -1,0 +1,25 @@
+name: scholarmind-local
+
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${SCHOLARMIND_POSTGRES_DB:-scholarmind}
+      POSTGRES_USER: ${SCHOLARMIND_POSTGRES_USER:-scholarmind}
+      POSTGRES_PASSWORD: ${SCHOLARMIND_POSTGRES_PASSWORD:?copy .env.postgres.example and set a local password}
+    ports:
+      - "127.0.0.1:${SCHOLARMIND_POSTGRES_PORT:-5433}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    volumes:
+      - scholarmind_pgdata:/var/lib/postgresql/data
+      - ./src/scholarmind/storage/schema.sql:/docker-entrypoint-initdb.d/001-scholarmind.sql:ro
+
+volumes:
+  scholarmind_pgdata:
+    name: scholarmind_pgdata

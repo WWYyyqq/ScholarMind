@@ -143,27 +143,34 @@
 - [x] 每个核心改造项都能对应到一个 Baseline 缺陷；
 - [x] 结论均可回溯到固定 case、原始输出、人工标签和证据 URL。
 
-## Day 5｜8 月 3 日：隔离子研究任务失败
+## Day 5｜8 月 3 日：隔离子研究任务失败（✅ 已提前完成）
 
 **核心目标：** 一个子任务失败不终止整个研究。
 
+**状态：** ✅ 已于 2026-08-02 提前完成。详细记录见
+[`daily/2026-08-02-day-05.md`](daily/2026-08-02-day-05.md)。
+
 任务：
 
-- 移除无条件结束异常的逻辑；
-- 对并行子任务保留成功结果和失败状态；
-- 为 Token、Rate Limit、Tool Error 和未知异常定义最小处理策略；
-- 增加部分成功、全部失败和单工具失败测试。
+- [x] 移除无条件结束异常的逻辑；
+- [x] 对并行子任务保留成功结果和失败状态；
+- [x] 为 Token、Rate Limit、Tool Error 和未知异常定义最小处理策略；
+- [x] 增加部分成功、全部失败和单工具失败测试。
 
 产出：
 
-- 失败隔离实现；
-- `tests/unit/test_researcher_failures.py`。
+- [x] 失败隔离和结构化证据来源门；
+- [x] `tests/unit/test_researcher_failures.py`。
 
 验收：
 
-- 部分成功时仍能生成 PartialResult；
-- 错误原因进入结构化状态；
-- 单元测试稳定通过。
+- [x] 部分成功时仍能生成 PartialResult；
+- [x] 错误原因进入结构化状态；
+- [x] 单元测试稳定通过。
+
+本次同时提前建立领域模型、存储、检索、File Researcher 和 CI 基础，但不据此把
+Day 6、Day 8～12、Day 19～22 或 Day 27 的完整验收标为完成；缺少的主图接线、
+Alembic、真实语义 embedding、HNSW/Reranker 和本地 Docker 运行仍按后续计划处理。
 
 ## Day 6｜8 月 4 日：建立 ScholarMind 模块骨架
 

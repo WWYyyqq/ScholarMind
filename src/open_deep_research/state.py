@@ -1,12 +1,12 @@
 """Graph state definitions and data structures for the Deep Research agent."""
 
 import operator
-from typing import Annotated, Optional
+from typing import Annotated, Literal, Optional
 
 from langchain_core.messages import MessageLikeRepresentation
 from langgraph.graph import MessagesState
 from pydantic import BaseModel, Field
-from typing_extensions import TypedDict
+from typing_extensions import NotRequired, TypedDict
 
 
 ###################
@@ -52,6 +52,32 @@ class ResearchQuestion(BaseModel):
 # State Definitions
 ###################
 
+ResearchStatus = Literal["success", "partial", "failed"]
+
+
+class ResearchEvidence(TypedDict):
+    """Provenance record for one successful research tool observation."""
+
+    evidence_id: str
+    source: Literal["tool", "native_search"]
+    tool_name: str
+    tool_call_id: str
+    content_hash: str
+    content: str
+
+
+class ResearchError(TypedDict):
+    """Machine-readable reason for a degraded or failed research run."""
+
+    stage: Literal["supervisor", "researcher", "tool", "compression", "writer"]
+    code: str
+    message: str
+    recoverable: bool
+    research_topic: NotRequired[str]
+    tool_name: NotRequired[str]
+    tool_call_id: NotRequired[str]
+
+
 def override_reducer(current_value, new_value):
     """Reducer function that allows overriding values in state."""
     if isinstance(new_value, dict) and new_value.get("type") == "override":
@@ -70,6 +96,10 @@ class AgentState(MessagesState):
     raw_notes: Annotated[list[str], override_reducer] = []
     notes: Annotated[list[str], override_reducer] = []
     final_report: str
+    research_status: ResearchStatus
+    research_errors: Annotated[list[ResearchError], operator.add] = []
+    evidence_count: Annotated[int, operator.add] = 0
+    evidence_records: Annotated[list[ResearchEvidence], operator.add] = []
 
 class SupervisorState(TypedDict):
     """State for the supervisor that manages research tasks."""
@@ -79,6 +109,12 @@ class SupervisorState(TypedDict):
     notes: Annotated[list[str], override_reducer] = []
     research_iterations: int = 0
     raw_notes: Annotated[list[str], override_reducer] = []
+    research_status: ResearchStatus
+    research_errors: Annotated[list[ResearchError], operator.add] = []
+    evidence_count: Annotated[int, operator.add] = 0
+    evidence_records: Annotated[list[ResearchEvidence], operator.add] = []
+    successful_research_units: Annotated[int, operator.add] = 0
+    failed_research_units: Annotated[int, operator.add] = 0
 
 class ResearcherState(TypedDict):
     """State for individual researchers conducting research."""
@@ -88,9 +124,17 @@ class ResearcherState(TypedDict):
     research_topic: str
     compressed_research: str
     raw_notes: Annotated[list[str], override_reducer] = []
+    research_status: ResearchStatus
+    research_errors: Annotated[list[ResearchError], operator.add] = []
+    evidence_count: Annotated[int, operator.add] = 0
+    evidence_records: Annotated[list[ResearchEvidence], operator.add] = []
 
 class ResearcherOutputState(BaseModel):
     """Output state from individual researchers."""
     
     compressed_research: str
     raw_notes: Annotated[list[str], override_reducer] = []
+    research_status: ResearchStatus = "failed"
+    research_errors: list[ResearchError] = Field(default_factory=list)
+    evidence_count: int = 0
+    evidence_records: list[ResearchEvidence] = Field(default_factory=list)

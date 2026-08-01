@@ -10,10 +10,12 @@
 | 启动本地 Qwen3 与 vLLM | [本地模型服务](../services/local-llm/README.md) |
 | 查看 42 天计划和每日记录 | [开发计划与日志](development/README.md) |
 | 理解 Baseline 状态图 | [Baseline 架构](architecture/baseline.md) |
+| 理解失败隔离、证据模型与 pgvector | [可靠性与证据流水线](architecture/evidence-pipeline.md) |
 | 运行固定 Baseline 评测 | [机器可读评测资产与运行命令](../evaluation/README.md) |
 | 查看 Day 4 错误分析 | [Baseline 错误分析](evaluation/baseline-error-analysis.md) |
 | 构建 97 篇论文数据集 | [论文数据集说明](evaluation/paper-dataset/README.md) |
 | 把 Silver 问题复核为 Gold | [Silver → Gold 人工标注手册](evaluation/paper-dataset/silver-to-gold.md) |
+| 按天完成 42 道 Silver 复核 | [七天人工复核执行计划](evaluation/paper-dataset/silver-review-plan.md) |
 | 复制人工复核空模板 | [Review 模板](evaluation/paper-dataset/templates/review-record.template.json) |
 | 复制 Gold 问题空模板 | [Gold 模板](evaluation/paper-dataset/templates/gold-question.template.json) |
 | 查看上游来源和固定 Commit | [上游基线说明](project/upstream.md) |
@@ -27,13 +29,15 @@ docs/
 │   ├── overview.md
 │   └── upstream.md
 ├── architecture/
-│   └── baseline.md
+│   ├── baseline.md
+│   └── evidence-pipeline.md
 ├── evaluation/
 │   ├── README.md
 │   ├── baseline-error-analysis.md
 │   └── paper-dataset/
 │       ├── README.md
 │       ├── silver-to-gold.md
+│       ├── silver-review-plan.md
 │       └── templates/
 └── development/
     ├── README.md
