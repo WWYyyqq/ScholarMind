@@ -61,7 +61,7 @@
 产出：
 
 - 可运行的本地仓库；
-- `docs/upstream.md`；
+- `docs/project/upstream.md`；
 - `services/local-llm/` 启动脚本、固定依赖和冒烟测试；
 - 初始环境说明。
 
@@ -87,7 +87,7 @@
 
 产出：
 
-- [x] `docs/baseline_architecture.md`；
+- [x] `docs/architecture/baseline.md`；
 - [x] Baseline Mermaid 流程图；
 - [x] 状态字段流向表。
 
@@ -134,7 +134,7 @@
 
 产出：
 
-- [x] `docs/baseline_error_analysis.md`；
+- [x] `docs/evaluation/baseline-error-analysis.md`；
 - [x] `evaluation/labels/baseline.csv`；
 - [x] `evaluation/results/day4-summary-20260731.json`。
 

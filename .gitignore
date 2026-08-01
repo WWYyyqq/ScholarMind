@@ -67,6 +67,8 @@ node_modules/
 .cache/
 data/uploads/
 data/snapshots/
+data/local/
+evaluation/private/
 artifacts/
 
 # Temporary files

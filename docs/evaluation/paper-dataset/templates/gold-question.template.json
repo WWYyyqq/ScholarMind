@@ -1,0 +1,38 @@
+{
+  "template_notice": "公开教学用空模板；null 表示尚未填写或当前状态不适用。它不是当前 Silver schema 的有效记录，真实 Gold 禁止提交到公开仓库。",
+  "schema_version": "draft-1",
+  "annotation_spec_version": "1.0-draft",
+  "gold_version": null,
+  "gold_question_id": null,
+  "source_question_id": null,
+  "paper_id": null,
+  "work_id": null,
+  "question_type": null,
+  "question": null,
+  "answer": null,
+  "acceptable_answers": [],
+  "evidence": {
+    "page_number": null,
+    "text": null,
+    "block_ids": [],
+    "bbox": null,
+    "bbox_normalized_top_left": null
+  },
+  "label_quality": "human_verified_gold",
+  "review_status": null,
+  "derivation": null,
+  "tuning_allowed": false,
+  "provenance": {
+    "annotation_spec": "docs/evaluation/paper-dataset/silver-to-gold.md",
+    "source_dataset_release": null,
+    "questions_silver_file_sha256": null,
+    "source_checksums_file_sha256": null,
+    "review_protocol": null,
+    "reviewer_count": null,
+    "reviewer_aliases": [],
+    "source_review_record_id": null,
+    "resolution_status": null,
+    "resolver_alias": null,
+    "resolved_at_utc": null
+  }
+}

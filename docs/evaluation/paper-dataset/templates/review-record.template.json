@@ -1,0 +1,105 @@
+{
+  "template_notice": "公开教学用空模板；null 表示尚未填写或当前状态不适用。请复制到本地私有目录并按手册填写，真实记录禁止提交到公开仓库。",
+  "schema_version": "draft-1",
+  "annotation_spec_version": "1.0-draft",
+  "annotation_record_id": null,
+  "record_status": "draft",
+  "source": {
+    "dataset_release": null,
+    "question_id": null,
+    "paper_id": null,
+    "work_id": null,
+    "questions_silver_file_sha256": null,
+    "source_checksums_file_sha256": null
+  },
+  "review_protocol": null,
+  "reviews": {
+    "round_1": {
+      "reviewer_alias": null,
+      "decision": null,
+      "checks": {
+        "question_clear": null,
+        "answer_correct": null,
+        "answer_unique": null,
+        "evidence_supports_answer": null,
+        "page_correct": null,
+        "layout_location_correct": null
+      },
+      "issue_codes": [],
+      "proposed_revision": {
+        "question_type": null,
+        "question": null,
+        "answer": null,
+        "acceptable_answers": [],
+        "evidence": {
+          "page_number": null,
+          "text": null,
+          "block_ids": [],
+          "bbox": null,
+          "bbox_normalized_top_left": null
+        }
+      },
+      "confidence": null,
+      "notes": null,
+      "reviewed_at_utc": null
+    },
+    "round_2": {
+      "reviewer_alias": null,
+      "decision": null,
+      "checks": {
+        "question_clear": null,
+        "answer_correct": null,
+        "answer_unique": null,
+        "evidence_supports_answer": null,
+        "page_correct": null,
+        "layout_location_correct": null
+      },
+      "issue_codes": [],
+      "proposed_revision": {
+        "question_type": null,
+        "question": null,
+        "answer": null,
+        "acceptable_answers": [],
+        "evidence": {
+          "page_number": null,
+          "text": null,
+          "block_ids": [],
+          "bbox": null,
+          "bbox_normalized_top_left": null
+        }
+      },
+      "confidence": null,
+      "notes": null,
+      "reviewed_at_utc": null
+    }
+  },
+  "resolution": {
+    "status": "not_evaluated",
+    "resolver_alias": null,
+    "final_decision": null,
+    "final_payload_source": null,
+    "issue_codes": [],
+    "final_revision": {
+      "question_type": null,
+      "question": null,
+      "answer": null,
+      "acceptable_answers": [],
+      "evidence": {
+        "page_number": null,
+        "text": null,
+        "block_ids": [],
+        "bbox": null,
+        "bbox_normalized_top_left": null
+      }
+    },
+    "rationale": null,
+    "resolved_at_utc": null
+  },
+  "gold_export": {
+    "eligible": false,
+    "gold_question_id": null,
+    "label_quality": null,
+    "review_status": null,
+    "derivation": null
+  }
+}

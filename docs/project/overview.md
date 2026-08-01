@@ -1,5 +1,7 @@
 # ScholarMind
 
+导航：[文档中心](../README.md) · [上游基线](upstream.md) · [开发计划](../development/README.md)
+
 ScholarMind 是一个基于 [Open Deep Research](https://github.com/langchain-ai/open_deep_research)
 构建的证据优先研究 Agent 项目。项目目标是在 6 周内完成一个适合秋招简历、
 技术面试演示和后续开源迭代的 `v0.1.0`。
@@ -27,7 +29,7 @@ Claim-Evidence Verification
 
 完整的逐日任务、验收标准和范围控制见：
 
-> [42 天每日开发计划](development/PLAN.md)
+> [42 天每日开发计划](../development/PLAN.md)
 
 ## v0.1.0 核心范围
 
