@@ -34,7 +34,7 @@ Claim-Evidence / Citation Verification
 | Day 4：Baseline 错误分析 | ✅ 完成 | [错误分析](docs/evaluation/baseline-error-analysis.md) · [详细日志](docs/development/daily/2026-07-31-day-04.md) |
 | Day 5：并行失败隔离与证据门 | ✅ 提前完成 | [可靠性与证据流水线](docs/architecture/evidence-pipeline.md) · [详细日志](docs/development/daily/2026-08-02-day-05.md) |
 | 论文数据预处理（专项） | ✅ 完成并通过独立验证 | [数据说明](docs/evaluation/paper-dataset/README.md) · [Gold 标注手册](docs/evaluation/paper-dataset/silver-to-gold.md) · [详细日志](docs/development/supplemental/2026-08-01-paper-dataset-preparation.md) |
-| 证据流水线基础（专项） | ✅ 代码与测试完成，待 PR CI | Source/Evidence/Claim/Citation、pgvector、BM25/RRF、File Researcher、Verifier 和自动 CI；不等于后续各 Day 已全部验收 |
+| 证据流水线基础（专项） | ✅ 代码、单测与真实 pgvector CI 通过 | Source/Evidence/Claim/Citation、pgvector、BM25/RRF、File Researcher、Verifier 和自动 CI；不等于后续各 Day 已全部验收 |
 | 搜索能力 | ⏳ 未接入 | 当前使用 `SEARCH_API=none` |
 | 简历可投递版本 | 计划 2026-08-26 | Day 28 |
 | `v0.1.0` | 计划 2026-09-09 | Day 42 |
