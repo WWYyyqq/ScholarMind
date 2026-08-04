@@ -17,6 +17,31 @@ from scholarmind.verification import (
 )
 
 _SENTENCE_BOUNDARY_RE = re.compile(r"(?<=[.!?。！？])\s+")
+_TOKEN_RE = re.compile(r"[a-z0-9]+|[\u3400-\u9fff]", re.IGNORECASE)
+_REFERENCE_START_RE = re.compile(r"^\[\d{1,4}\]\s+")
+_YEAR_RE = re.compile(r"\b(?:19|20)\d{2}\b")
+_ROMAN_HEADING_RE = re.compile(r"^(?:[IVXLCDM]+\.|\d+(?:\.\d+)*\.?)$")
+_AUTHOR_FRAGMENT_RE = re.compile(r'^[A-Z][A-Za-z-]{1,30},\s+["“]')
+_QUERY_STOPWORDS = frozenset(
+    {
+        "a",
+        "an",
+        "and",
+        "are",
+        "do",
+        "does",
+        "for",
+        "how",
+        "in",
+        "is",
+        "of",
+        "the",
+        "to",
+        "what",
+        "which",
+        "with",
+    }
+)
 
 
 class ResearchStatus(str, Enum):
@@ -62,11 +87,10 @@ class ExtractiveClaimGenerator:
         question: str,
         evidence: Sequence[Evidence],
     ) -> Sequence[ClaimDraft]:
-        """Use the first complete sentence of each retrieved passage."""
-        del question  # The deterministic baseline is evidence-only by design.
+        """Select a complete, question-relevant sentence from each passage."""
         drafts: list[ClaimDraft] = []
-        for item in evidence[: self.max_claims]:
-            sentence = _first_sentence(item.text)
+        for item in evidence:
+            sentence = _best_sentence(item.text, question=question)
             if not sentence:
                 continue
             drafts.append(
@@ -75,10 +99,12 @@ class ExtractiveClaimGenerator:
                     evidence_ids=(item.evidence_id,),
                     metadata={
                         "claim_type": "fact",
-                        "generator": "extractive",
+                        "generator": "extractive-query-aware",
                     },
                 )
             )
+            if len(drafts) >= self.max_claims:
+                break
         return drafts
 
 
@@ -318,10 +344,87 @@ class FileResearcher:
 
 
 def _first_sentence(text: str) -> str:
+    """Return the first usable sentence for backward-compatible callers."""
+    return _best_sentence(text, question="")
+
+
+def _best_sentence(text: str, *, question: str) -> str:
+    """Choose an informative exact sentence while rejecting PDF noise."""
     normalized = " ".join(text.split())
     if not normalized:
         return ""
-    return _SENTENCE_BOUNDARY_RE.split(normalized, maxsplit=1)[0]
+    candidates = [
+        sentence.strip()
+        for sentence in _SENTENCE_BOUNDARY_RE.split(normalized)
+        if _is_informative_sentence(sentence.strip())
+    ]
+    if not candidates:
+        return ""
+
+    query_terms = _terms(question) - _QUERY_STOPWORDS
+    ranked = max(
+        enumerate(candidates),
+        key=lambda indexed: (
+            _sentence_score(indexed[1], query_terms=query_terms),
+            -indexed[0],
+        ),
+    )
+    return ranked[1]
+
+
+def _is_informative_sentence(sentence: str) -> bool:
+    """Reject headings, bibliography entries, and short extraction debris."""
+    if len(sentence) < 28 or _ROMAN_HEADING_RE.fullmatch(sentence):
+        return False
+    if sentence[0].isascii() and sentence[0].islower():
+        return False
+    if _REFERENCE_START_RE.match(sentence):
+        return False
+    if _YEAR_RE.search(sentence) and _AUTHOR_FRAGMENT_RE.match(sentence):
+        return False
+
+    lowered = sentence.casefold()
+    reference_terms = (
+        "proceedings of",
+        "conference on",
+        "transactions on",
+        " et al.",
+        " pp.",
+    )
+    if _YEAR_RE.search(sentence) and any(term in lowered for term in reference_terms):
+        return False
+
+    tokens = _terms(sentence)
+    cjk_count = len(re.findall(r"[\u3400-\u9fff]", sentence))
+    return len(tokens) >= 5 or cjk_count >= 14
+
+
+def _terms(text: str) -> set[str]:
+    return {match.casefold() for match in _TOKEN_RE.findall(text)}
+
+
+def _sentence_score(sentence: str, *, query_terms: set[str]) -> tuple[int, int, int]:
+    terms = _terms(sentence)
+    overlap = len(terms & query_terms)
+    # Cap length so a malformed page cannot outrank a concise factual sentence
+    # merely by containing more extraction noise.
+    useful_length = min(len(sentence), 240)
+    has_method_signal = int(
+        bool(
+            terms
+            & {
+                "approach",
+                "detect",
+                "detection",
+                "method",
+                "model",
+                "results",
+                "uses",
+                "using",
+            }
+        )
+    )
+    return overlap, has_method_signal, useful_length
 
 
 def _page_located_evidence(
