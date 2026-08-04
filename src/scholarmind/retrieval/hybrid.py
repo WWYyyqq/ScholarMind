@@ -16,6 +16,7 @@ class _FusionEntry:
     sparse_score: float | None = None
     dense_rank: int | None = None
     sparse_rank: int | None = None
+    quality_score: float | None = None
 
 
 def reciprocal_rank_fusion(
@@ -50,6 +51,10 @@ def reciprocal_rank_fusion(
                 evidence_id, _FusionEntry(evidence=result.evidence)
             )
             entry.score += weight / (rrf_k + rank)
+            if result.quality_score is not None:
+                entry.quality_score = max(
+                    entry.quality_score or 0.0, result.quality_score
+                )
             if source_name == "dense":
                 entry.dense_score = result.score
                 entry.dense_rank = rank
@@ -69,6 +74,7 @@ def reciprocal_rank_fusion(
             sparse_score=entry.sparse_score,
             dense_rank=entry.dense_rank,
             sparse_rank=entry.sparse_rank,
+            quality_score=entry.quality_score,
         )
         for rank, entry in enumerate(ordered[:limit], start=1)
     ]

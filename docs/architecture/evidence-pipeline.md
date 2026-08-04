@@ -118,6 +118,15 @@ Repository 会检查 Claim、Evidence、Source 和 locator 四者一致，防止
 不要用全量 `chunks.jsonl` 作为日常索引入口。Adapter 的 split 检查是最后一道
 保险，不替代物理文件隔离。
 
+正式评测索引必须显式选择 test，且使用与 development 分开的进度文件：
+
+```bash
+.venv/bin/python -m scholarmind.cli index \
+  --dataset "<DATASET_DIR>" \
+  --dataset-split test
+```
+
+
 ## 6. 检索层
 
 当前提供三个可组合实现：
@@ -130,6 +139,31 @@ Repository 会检查 Claim、Evidence、Source 和 locator 四者一致，防止
 冒烟测试。它不是语义 embedding 模型，不能作为正式 Dense Retrieval 效果结论。
 正式演示前应固定一个真实 embedding 模型、版本和维度，再为对应维度建立 HNSW
 索引。
+
+实际 CLI 的默认链路已经升级为：
+
+```text
+Qwen query embedding → pgvector Dense ─┐
+accepted corpus → BM25 Sparse ─────────┤
+                                       ▼
+                            weighted RRF fusion
+                                       ▼
+                         evidence quality gate
+                                       ▼
+                         local Qwen /rerank
+```
+
+`EvidenceQualityPolicy` 会拒绝参考文献、标题式短块、低文本密度和缺页码证据，
+`QualityFilteredRetriever` 通过扩大候选集降低过滤带来的召回损失。
+`OpenAIRerankProvider` 复用 Qwen3-Embedding-0.6B 服务的 `/rerank` 接口，
+没有新增模型或环境。CLI 保留 `dense`、`hybrid`、`hybrid-rerank` 三种模式，
+默认使用最后一种。
+
+42 道待人工复核 Silver 问题的工程诊断中，Hybrid + Rerank 的 Source Recall@8
+为 100%，Page Recall@8 为 73.81%，最终 Top-8 明确噪声率由 Dense 的 4.46% 降至
+0%。这些数值不是 Gold 成绩；3 条标签证据本身被判为标题式/非完整句子，另 1 条
+无法精确映射，必须在人工复核后再冻结正式指标。
+
 
 ## 7. File Researcher 发布门
 
@@ -217,10 +251,11 @@ docker compose \
 
 2026-08-04 已完成本机真实验收：Docker Desktop WSL2 后端启动
 `pgvector/pgvector:pg16`，启用 pgvector 0.8.6，创建 6 张证据关系表，并通过
-Repository 往返集成测试。随后使用 Qwen3-Embedding-0.6B 将 49 篇开发集论文的
-6,853 条 Evidence 全部写入 1024 维向量并完成语义检索。索引器支持按模型和
-Evidence 内容哈希判断向量是否有效、默认跳过已完成记录、批量写入、JSONL
-进度审计以及失败隔离；同一数据集再次执行时可跳过全部 6,853 条记录。
+Repository 往返集成测试。随后使用 Qwen3-Embedding-0.6B 写入 49 篇 development
+论文的 6,853 条 Evidence，以及 33 篇 test 论文的 4,026 条 Evidence，共计
+82 篇数据集论文、10,879 条 1024 维向量。索引器支持按模型和 Evidence 内容哈希
+判断向量是否有效、默认跳过已完成记录、批量写入、JSONL 进度审计以及失败隔离；
+development 与 test 使用独立进度文件，同一分区重跑可跳过全部有效记录。
 
 GitHub Actions 仍会独立启动同类服务，执行 Schema、CRUD、embedding 入库与向量
 检索，避免本机成功掩盖 CI 环境问题。若 WSL Integration 尚未启用，可以暂时从
@@ -240,7 +275,7 @@ GitHub Actions 在每次 PR 及 main push 时执行：
 本地无 Docker 时仍可执行：
 
 ```bash
-.venv/bin/ruff check src/scholarmind tests/unit tests/integration
+.venv/bin/ruff check src/scholarmind tests/unit tests/integration scripts/evaluate_paper_retrieval.py
 .venv/bin/python -m pytest -q -s tests/unit
 .venv/bin/python -m pytest -q -s tests/integration/test_postgres_repository.py
 ```
@@ -254,8 +289,9 @@ GitHub Actions 在每次 PR 及 main push 时执行：
 
 - Web/Baseline Writer 已有哈希与调用来源门，但尚未接入 Claim 级语义后验验证；
 - File Researcher 是库级 MVP，尚未连接主 LangGraph 节点、HTTP API 或界面；
-- 本地 Dense 已使用 Qwen3-Embedding-0.6B，但混合检索、Reranker 和噪声过滤仍需
-  在真实论文全集上调优，pgvector 也尚未冻结生产索引参数；
+- 本地论文链路已接入 Qwen Dense、BM25、RRF、质量过滤和 Qwen Rerank，但当前
+  指标来自待人工复核 Silver 标签；Gold 数据集与正式消融尚未完成，pgvector
+  生产索引参数也尚未冻结；
 - PostgreSQL 目前使用幂等 schema，尚未引入 Alembic 升降级；
 - 正式 Review/Gold schema、构建器和验证器仍是 Silver 人工复核阶段的后续工具；
 - 本地数据库需用户先安装/启用 Docker Desktop 的 WSL 集成。

@@ -33,6 +33,8 @@ class SearchResult(DomainModel):
     sparse_score: float | None = None
     dense_rank: int | None = Field(default=None, ge=1)
     sparse_rank: int | None = Field(default=None, ge=1)
+    quality_score: float | None = Field(default=None, ge=0.0, le=1.0)
+    reranker_score: float | None = None
 
 
 class Retriever(Protocol):

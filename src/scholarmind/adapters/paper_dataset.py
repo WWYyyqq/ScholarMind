@@ -105,9 +105,7 @@ class PaperDatasetAdapter:
         )
 
     @staticmethod
-    def evidence_from_chunk(
-        record: Mapping[str, Any], source: Source
-    ) -> Evidence:
+    def evidence_from_chunk(record: Mapping[str, Any], source: Source) -> Evidence:
         """Map one page-bounded chunk while retaining every source locator."""
         paper_id = str(_required(record, "paper_id"))
         if paper_id != source.paper_id:
@@ -118,11 +116,15 @@ class PaperDatasetAdapter:
         bbox: tuple[float, float, float, float] | None = None
         if bbox_value is not None:
             if not isinstance(bbox_value, list | tuple) or len(bbox_value) != 4:
-                raise PaperDatasetRecordError("chunk bbox must contain four coordinates")
+                raise PaperDatasetRecordError(
+                    "chunk bbox must contain four coordinates"
+                )
             bbox = tuple(float(value) for value in bbox_value)  # type: ignore[assignment]
+        raw_section = str(record.get("section") or "unknown")
+        nul_section_characters = raw_section.count("\x00")
         locator = EvidenceLocator(
             page_number=int(_required(record, "page_number")),
-            section=str(record.get("section") or "unknown"),
+            section=raw_section.replace("\x00", "").strip() or "unknown",
             bbox=bbox,
             chunk_id=str(_required(record, "chunk_id")),
             block_ids=tuple(str(value) for value in record.get("block_ids", ())),
@@ -146,9 +148,7 @@ class PaperDatasetAdapter:
         )
         text = str(_required(record, "text"))
         declared_digest = str(_required(record, "content_sha256"))
-        metadata = {
-            key: record.get(key) for key in metadata_keys if key in record
-        }
+        metadata = {key: record.get(key) for key in metadata_keys if key in record}
         nul_characters = text.count("\x00")
         if nul_characters:
             text = text.replace("\x00", "")
@@ -160,6 +160,9 @@ class PaperDatasetAdapter:
                 "removed_nul_characters": nul_characters,
                 "original_content_sha256": declared_digest,
             }
+        if nul_section_characters:
+            sanitization = metadata.setdefault("sanitization", {})
+            sanitization["removed_nul_section_characters"] = nul_section_characters
         return Evidence.create(
             source_id=source.source_id,
             text=text,

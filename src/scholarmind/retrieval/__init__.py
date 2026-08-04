@@ -10,6 +10,16 @@ from .indexing import (
 )
 from .openai_embedding import OpenAIEmbeddingProvider
 from .progress import JsonlIndexingProgressRecorder
+from .quality import (
+    EvidenceQualityAssessment,
+    EvidenceQualityPolicy,
+    QualityFilteredRetriever,
+)
+from .reranking import (
+    OpenAIRerankProvider,
+    RerankingRetriever,
+    RerankProvider,
+)
 from .sparse import SparseRetriever
 from .types import EmbeddingProvider, Retriever, SearchResult
 
@@ -28,5 +38,11 @@ __all__ = [
     "Retriever",
     "SearchResult",
     "SparseRetriever",
+    "EvidenceQualityAssessment",
+    "EvidenceQualityPolicy",
+    "OpenAIRerankProvider",
+    "QualityFilteredRetriever",
+    "RerankProvider",
+    "RerankingRetriever",
     "reciprocal_rank_fusion",
 ]
