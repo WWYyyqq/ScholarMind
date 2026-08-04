@@ -29,6 +29,24 @@ def test_prefixed_environment_values_are_parsed() -> None:
     assert settings.rrf_k == 30
 
 
+def test_settings_load_local_embedding_endpoint() -> None:
+    settings = ScholarMindSettings.from_env(
+        {
+            "SCHOLARMIND_EMBEDDING_MODEL": "qwen3-embedding-local",
+            "SCHOLARMIND_EMBEDDING_DIMENSION": "1024",
+            "SCHOLARMIND_EMBEDDING_BASE_URL": "http://127.0.0.1:8001/v1",
+            "SCHOLARMIND_EMBEDDING_API_KEY": "test-key",
+            "SCHOLARMIND_EMBEDDING_QUERY_INSTRUCTION": "retrieve papers",
+        }
+    )
+
+    assert settings.embedding_model == "qwen3-embedding-local"
+    assert settings.embedding_dimension == 1024
+    assert settings.embedding_base_url == "http://127.0.0.1:8001/v1"
+    assert settings.embedding_api_key == "test-key"
+    assert settings.embedding_query_instruction == "retrieve papers"
+
+
 def test_postgres_backend_requires_project_dsn() -> None:
     with pytest.raises(ValidationError, match="SCHOLARMIND_POSTGRES_DSN"):
         ScholarMindSettings.from_env({"SCHOLARMIND_STORAGE_BACKEND": "postgres"})

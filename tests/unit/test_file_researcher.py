@@ -9,6 +9,7 @@ from scholarmind.models import (
 )
 from scholarmind.researchers import (
     ClaimDraft,
+    ExtractiveClaimGenerator,
     FileResearcher,
     ResearchStatus,
 )
@@ -107,6 +108,53 @@ def test_local_retrieval_produces_evidence_claim_citation_and_page_report() -> N
     assert "The method improves accuracy by 12%." in result.report
     assert "[Synthetic retrieval study, p. 3]" in result.report
     assert "second sentence" not in result.report
+
+
+def test_extractive_generator_selects_question_relevant_sentence() -> None:
+    source = _source()
+    evidence = _evidence(
+        source,
+        text=(
+            "The appendix lists implementation details for reproducibility. "
+            "The anomaly detection model uses channel attention to identify "
+            "sensitive metrics."
+        ),
+    )
+
+    drafts = ExtractiveClaimGenerator().generate(
+        "Which model improves anomaly detection?",
+        (evidence,),
+    )
+
+    assert len(drafts) == 1
+    assert drafts[0].text.startswith("The anomaly detection model")
+    assert drafts[0].metadata["generator"] == "extractive-query-aware"
+
+
+def test_extractive_generator_skips_reference_and_heading_fragments() -> None:
+    source = _source()
+    evidence = _evidence(
+        source,
+        text=(
+            "III. "
+            "[67] Y. Su et al. Robust anomaly detection, in Proceedings of "
+            "KDD 2019. "
+            "Lyu, “Heterogeneous anomaly detection via cross-modal "
+            "attention,” 2022. "
+            "between hard and abnormal samples, reduce false positives, "
+            "and improve anomaly detection. "
+            "Metrics are standardized before the root cause localization "
+            "model analyzes dependencies between services."
+        ),
+    )
+
+    drafts = ExtractiveClaimGenerator().generate(
+        "How does the root cause localization model process metrics?",
+        (evidence,),
+    )
+
+    assert len(drafts) == 1
+    assert drafts[0].text.startswith("Metrics are standardized")
 
 
 def test_no_page_located_evidence_blocks_report_generation() -> None:

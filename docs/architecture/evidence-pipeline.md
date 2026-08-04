@@ -213,12 +213,15 @@ docker compose \
 不要随手添加 `-v`；它会删除 ScholarMind 的 PostgreSQL 命名卷。Docker 镜像、
 卷和 embedding 会额外占用磁盘，数据通常位于 Docker Desktop 的磁盘映像中。
 若 C 盘空间紧张，应先把 Docker Desktop 数据磁盘迁到 D 盘，再导入大规模向量；
-本次代码不会自动下载模型或在本机启动数据库。
+代码不会自动下载模型或在未明确执行 Compose 命令时启动数据库。
 
-当前 WSL 环境没有 Docker 命令，所以本次本地验证只能覆盖配置、SQL、Repository
-和跳过型集成测试。GitHub Actions 会启动真实 `pgvector/pgvector:pg16` 服务，
-执行 Schema、CRUD、embedding 入库与向量检索；PR 的绿色 CI 才是数据库运行时
-验收证据。
+2026-08-04 已完成本机真实验收：Docker Desktop WSL2 后端启动
+`pgvector/pgvector:pg16`，启用 pgvector 0.8.6，创建 6 张证据关系表，并通过
+Repository 往返集成测试。随后使用 Qwen3-Embedding-0.6B 将 32 条开发集证据写入
+1024 维向量并完成语义检索。GitHub Actions 仍会独立启动同类服务，执行 Schema、
+CRUD、embedding 入库与向量检索，避免本机成功掩盖 CI 环境问题。若 WSL
+Integration 尚未启用，可以暂时从 WSL 调用 Docker Desktop 自带的 Windows CLI；
+推荐最终在 Docker Desktop 设置中为 Ubuntu 启用集成。
 
 ## 10. CI 与本地验证
 
