@@ -42,8 +42,8 @@ Socket的107字符上限。可用`SCHOLARMIND_EMBEDDING_TMPDIR`单独覆盖。
 set -a
 source .env.postgres
 set +a
-.venv/bin/python -m scholarmind.cli index-paper-dataset \
-  --dataset-dir /path/to/paper-dataset-v1 \
+.venv/bin/python -m scholarmind.cli index \
+  --dataset /path/to/paper-dataset-v1 \
   --embedding-base-url http://[::1]:8001/v1 \
   --embedding-model qwen3-embedding-0.6b-local \
   --batch-size 64
