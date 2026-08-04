@@ -11,6 +11,7 @@
 
 - [97 篇 PDF 的数据预处理说明](paper-dataset/README.md)
 - [Silver → Gold 人工标注操作手册](paper-dataset/silver-to-gold.md)
+- [42 道 Silver 问题七天人工复核计划](paper-dataset/silver-review-plan.md)
 - [人工复核记录空模板](paper-dataset/templates/review-record.template.json)
 - [Gold 问题空模板](paper-dataset/templates/gold-question.template.json)
 

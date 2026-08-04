@@ -21,12 +21,14 @@
 | Day 2 | 2026-07-30 | 理解 Baseline 状态图 | ✅ 完成 | [详细日志](daily/2026-07-30-day-02.md) | `aa2b04a` |
 | Day 3 | 2026-07-31 | 建立可重复 Baseline Runner | ✅ 完成 | [详细日志](daily/2026-07-31-day-03.md) | `0e5c694` |
 | Day 4 | 2026-07-31 | 完成 Baseline 错误分析 | ✅ 完成 | [详细日志](daily/2026-07-31-day-04.md) | `d9b9b59` |
+| Day 5 | 2026-08-02 | 失败隔离与结构化证据门 | ✅ 提前完成 | [详细日志](daily/2026-08-02-day-05.md) | 待 PR 合并 |
 
 ## 专项记录
 
 | 日期 | 主题 | 状态 | 记录 |
 | --- | --- | --- | --- |
 | 2026-08-01 | 97 篇本地论文数据预处理 | ✅ 完成并通过独立验证 | [详细日志](supplemental/2026-08-01-paper-dataset-preparation.md) · [标注手册](../evaluation/paper-dataset/silver-to-gold.md) |
+| 2026-08-02 | 证据模型、pgvector、检索、File Researcher 与 CI 基础 | ✅ 代码、单测与真实 pgvector CI 通过 | [Day 5 日志](daily/2026-08-02-day-05.md) · [架构说明](../architecture/evidence-pipeline.md) · [Silver 七天计划](../evaluation/paper-dataset/silver-review-plan.md) |
 
 ## 记录规范
 

@@ -32,7 +32,9 @@ Claim-Evidence / Citation Verification
 | Day 2：理解 Baseline 状态图 | ✅ 完成 | [架构文档](docs/architecture/baseline.md) · [详细日志](docs/development/daily/2026-07-30-day-02.md) |
 | Day 3：可重复 Baseline Runner | ✅ 完成 | [评测说明](evaluation/README.md) · [详细日志](docs/development/daily/2026-07-31-day-03.md) |
 | Day 4：Baseline 错误分析 | ✅ 完成 | [错误分析](docs/evaluation/baseline-error-analysis.md) · [详细日志](docs/development/daily/2026-07-31-day-04.md) |
+| Day 5：并行失败隔离与证据门 | ✅ 提前完成 | [可靠性与证据流水线](docs/architecture/evidence-pipeline.md) · [详细日志](docs/development/daily/2026-08-02-day-05.md) |
 | 论文数据预处理（专项） | ✅ 完成并通过独立验证 | [数据说明](docs/evaluation/paper-dataset/README.md) · [Gold 标注手册](docs/evaluation/paper-dataset/silver-to-gold.md) · [详细日志](docs/development/supplemental/2026-08-01-paper-dataset-preparation.md) |
+| 证据流水线基础（专项） | ✅ 代码、单测与真实 pgvector CI 通过 | Source/Evidence/Claim/Citation、pgvector、BM25/RRF、File Researcher、Verifier 和自动 CI；不等于后续各 Day 已全部验收 |
 | 搜索能力 | ⏳ 未接入 | 当前使用 `SEARCH_API=none` |
 | 简历可投递版本 | 计划 2026-08-26 | Day 28 |
 | `v0.1.0` | 计划 2026-09-09 | Day 42 |
@@ -43,9 +45,11 @@ Claim-Evidence / Citation Verification
 
 - [项目总览](docs/project/overview.md)
 - [开发计划与日志](docs/development/README.md)
+- [可靠性与证据流水线](docs/architecture/evidence-pipeline.md)
 - [Baseline 评测与论文数据](docs/evaluation/README.md)
 - [本地 Qwen3 / vLLM 服务](services/local-llm/README.md)
 - [Silver → Gold 人工标注手册](docs/evaluation/paper-dataset/silver-to-gold.md)
+- [42 道 Silver 问题七天复核计划](docs/evaluation/paper-dataset/silver-review-plan.md)
 
 ## v0.1.0 核心范围
 
@@ -84,7 +88,7 @@ GraphRAG、Kubernetes、多租户、第二个本地模型等功能不进入 `v0.
 | 1 | Day 2 · 7/31 | 理解 Baseline 状态图 | ✅ 已提前完成 |
 | 1 | Day 3 · 8/1 | 建立 Baseline Runner | ✅ 已提前完成 |
 | 1 | Day 4 · 8/2 | Baseline 错误分析 | ✅ 已提前完成 |
-| 1 | Day 5 · 8/3 | 隔离子研究任务失败 | 计划 |
+| 1 | Day 5 · 8/3 | 隔离子研究任务失败 | ✅ 已提前完成 |
 | 1 | Day 6 · 8/4 | 建立 ScholarMind 模块骨架 | 计划 |
 | 1 | Day 7 · 8/5 | 第一周复盘与架构冻结 | 计划 |
 | 2 | Day 8 · 8/6 | 实现 SourceRecord | 计划 |

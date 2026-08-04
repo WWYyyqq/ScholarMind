@@ -29,7 +29,7 @@
     "case_id": {"type": "string", "pattern": "^baseline-[0-9]{3}$"},
     "category": {"type": "string"},
     "question": {"type": "string", "minLength": 1},
-    "status": {"enum": ["success", "report_error", "failed"]},
+    "status": {"enum": ["success", "partial", "report_error", "failed"]},
     "started_at": {"type": "string", "format": "date-time"},
     "completed_at": {"type": "string", "format": "date-time"},
     "thread_id": {"type": "string", "format": "uuid"},
@@ -92,7 +92,15 @@
           "type": "array",
           "items": {"type": "string"}
         },
-        "sources_count": {"type": "integer", "minimum": 0}
+        "sources_count": {"type": "integer", "minimum": 0},
+        "research_status": {
+          "enum": ["success", "partial", "failed", null]
+        },
+        "research_errors": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/research_error"}
+        },
+        "evidence_count": {"type": "integer", "minimum": 0}
       }
     },
     "source_urls": {
@@ -100,7 +108,33 @@
       "items": {"type": "string", "format": "uri"}
     },
     "final_report": {"type": "string"},
-    "error": {"type": ["string", "null"]}
+    "error": {"type": ["string", "null"]},
+    "research_status": {
+      "enum": ["success", "partial", "failed", null]
+    },
+    "research_errors": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/research_error"}
+    },
+    "evidence_count": {"type": "integer", "minimum": 0}
+  },
+  "$defs": {
+    "research_error": {
+      "type": "object",
+      "required": ["stage", "code", "message", "recoverable"],
+      "properties": {
+        "stage": {
+          "enum": ["supervisor", "researcher", "tool", "compression", "writer"]
+        },
+        "code": {"type": "string", "minLength": 1},
+        "message": {"type": "string", "minLength": 1},
+        "recoverable": {"type": "boolean"},
+        "research_topic": {"type": "string"},
+        "tool_name": {"type": "string"},
+        "tool_call_id": {"type": "string"}
+      },
+      "additionalProperties": false
+    }
   },
   "additionalProperties": true
 }

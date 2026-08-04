@@ -284,6 +284,7 @@ class EventMetrics:
             for name, count in self.executed_tools.items()
             if any(marker in name.lower() for marker in SEARCH_TOOL_MARKERS)
         )
+        research_status = self.final_state.get("research_status")
         return {
             "duration_ms": duration_ms,
             "node_counts": dict(sorted(self.node_counts.items())),
@@ -308,11 +309,54 @@ class EventMetrics:
             "researcher_count": self.tool_calls.get("ConductResearch", 0),
             "compression_count": self.node_counts.get("compress_research", 0),
             "degraded": bool(self.errors)
+            or research_status in {"partial", "failed"}
             or self.node_counts.get("compress_research", 0)
             < self.tool_calls.get("ConductResearch", 0),
             "sources_count": sources_count,
             "event_errors": self.errors,
+            "research_status": research_status,
+            "research_errors": self.final_state.get("research_errors", []),
+            "evidence_count": int(
+                self.final_state.get("evidence_count", 0) or 0
+            ),
         }
+
+
+def resolve_run_status(
+    final_state: dict[str, Any],
+    runtime_error: str | None,
+    event_errors: list[str],
+) -> tuple[str, str | None]:
+    """Resolve graph output into a durable status while supporting legacy runs."""
+    if runtime_error:
+        return "failed", runtime_error
+
+    final_report = str(final_state.get("final_report") or "")
+    structured_status = final_state.get("research_status")
+    research_errors = final_state.get("research_errors", [])
+    reasons = [
+        f"{error.get('code', 'research_error')}: {error.get('message', '')}".strip()
+        for error in research_errors
+        if isinstance(error, dict)
+    ]
+    reasons.extend(event_errors)
+
+    if structured_status in {"success", "partial", "failed"}:
+        if structured_status == "success" and (
+            not final_report
+            or final_report.startswith("Error generating final report")
+        ):
+            return "report_error", "; ".join(reasons) or "Final report is missing."
+        error = "; ".join(reasons) or None
+        if structured_status != "success" and error is None:
+            error = f"Research completed with status {structured_status}."
+        return str(structured_status), error
+
+    if not final_report or final_report.startswith(
+        "Error generating final report"
+    ):
+        return "report_error", "; ".join(reasons) or None
+    return "success", "; ".join(event_errors) or None
 
 
 def runtime_configuration(thread_id: str) -> dict[str, Any]:
@@ -375,14 +419,9 @@ async def run_case(
     completed_at = utc_now()
     final_report = str(metrics.final_state.get("final_report") or "")
     source_urls = extract_source_urls(final_report)
-    if error:
-        status = "failed"
-    elif not final_report or final_report.startswith("Error generating final report"):
-        status = "report_error"
-        if not error and metrics.errors:
-            error = "; ".join(metrics.errors)
-    else:
-        status = "success"
+    status, error = resolve_run_status(
+        metrics.final_state, error, metrics.errors
+    )
     safe_configuration = {
         key: value for key, value in configuration.items() if key != "thread_id"
     }
@@ -404,6 +443,11 @@ async def run_case(
         "source_urls": source_urls,
         "final_report": final_report,
         "error": error,
+        "research_status": metrics.final_state.get("research_status"),
+        "research_errors": metrics.final_state.get("research_errors", []),
+        "evidence_count": int(
+            metrics.final_state.get("evidence_count", 0) or 0
+        ),
     }
 
 

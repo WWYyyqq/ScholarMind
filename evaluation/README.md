@@ -15,7 +15,7 @@
 
 ## 论文 Silver → Gold 标注
 
-程序生成的论文问题只是 Silver 候选，必须人工查阅 PDF、复核问题/答案/证据并处理冲突后，才能形成 Gold。完整步骤见 [论文评测集 Silver → Gold 人工标注手册](../docs/evaluation/paper-dataset/silver-to-gold.md)。
+程序生成的论文问题只是 Silver 候选，必须人工查阅 PDF、复核问题/答案/证据并处理冲突后，才能形成 Gold。字段与判定规则见 [Silver → Gold 人工标注手册](../docs/evaluation/paper-dataset/silver-to-gold.md)，42 道题的每日工作量见 [七天人工复核执行计划](../docs/evaluation/paper-dataset/silver-review-plan.md)。
 
 公开仓库只保存规范和虚构模板；真实论文内容、逐题审阅记录及 Gold 数据保存在本地私有目录。
 

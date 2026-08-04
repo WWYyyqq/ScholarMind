@@ -1,6 +1,6 @@
 # 本地论文数据集预处理说明
 
-导航：[文档中心](../../README.md) · [评测与论文数据](../README.md) · [Silver → Gold 标注手册](silver-to-gold.md)
+导航：[文档中心](../../README.md) · [评测与论文数据](../README.md) · [Silver → Gold 标注手册](silver-to-gold.md) · [42 题七天复核计划](silver-review-plan.md)
 
 本文档说明如何把个人论文目录整理成 ScholarMind 可用、可追溯且不会污染原始资料的数据集。当前语料范围固定为 **97 个 PDF 文件**；Word、Excel 及其他格式不进入本流程。
 
@@ -65,7 +65,7 @@
 4. 至少进行一次独立复核，并记录标注者、版本和争议处理结果；
 5. 将通过复核的题目另存为 gold 集，且继续禁止用于提示调优或参数调优。
 
-逐题操作步骤、判定标准、错误代码、复核协议和公开空模板见 [Silver → Gold 人工标注手册](silver-to-gold.md)。
+逐题操作步骤、判定标准、错误代码、复核协议和公开空模板见 [Silver → Gold 人工标注手册](silver-to-gold.md)；实际工作量与七天批次见 [42 道 Silver 问题人工复核执行计划](silver-review-plan.md)。
 
 ## 生成物
 
