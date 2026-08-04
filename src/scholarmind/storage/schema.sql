@@ -56,6 +56,10 @@ CREATE TABLE IF NOT EXISTS scholarmind_citations (
 CREATE TABLE IF NOT EXISTS scholarmind_evidence_embeddings (
     evidence_id text NOT NULL REFERENCES scholarmind_evidence(evidence_id) ON DELETE CASCADE,
     model text NOT NULL,
+    content_sha256 char(64),
     embedding vector NOT NULL,
     PRIMARY KEY (evidence_id, model)
 );
+
+ALTER TABLE scholarmind_evidence_embeddings
+    ADD COLUMN IF NOT EXISTS content_sha256 char(64);

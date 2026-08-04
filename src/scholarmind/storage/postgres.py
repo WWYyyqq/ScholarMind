@@ -105,6 +105,39 @@ class PostgresEvidenceRepository:
             )
         self._commit()
 
+    def upsert_sources(self, sources: Sequence[Source]) -> None:
+        """Insert or update sources with one database batch."""
+        if not sources:
+            return
+        rows = [
+            (
+                source.source_id,
+                source.kind.value,
+                source.uri,
+                source.content_sha256,
+                _payload(source),
+            )
+            for source in sources
+        ]
+        with self._connection.cursor() as cursor:
+            cursor.executemany(
+                """
+                INSERT INTO scholarmind_sources
+                    (source_id, kind, uri, content_sha256, payload)
+                VALUES (%s, %s, %s, %s, %s::jsonb)
+                ON CONFLICT (source_id) DO UPDATE SET
+                    kind = EXCLUDED.kind,
+                    uri = EXCLUDED.uri,
+                    content_sha256 = EXCLUDED.content_sha256,
+                    payload = EXCLUDED.payload
+                WHERE scholarmind_sources.content_sha256
+                    IS DISTINCT FROM EXCLUDED.content_sha256
+                   OR scholarmind_sources.payload IS DISTINCT FROM EXCLUDED.payload
+                """,
+                rows,
+            )
+        self._commit()
+
     def upsert_evidence(self, evidence: Evidence) -> None:
         """Insert or replace evidence after checking source ownership."""
         if self.get_source(evidence.source_id) is None:
@@ -132,6 +165,62 @@ class PostgresEvidenceRepository:
                     evidence.locator.model_dump_json(),
                     _payload(evidence),
                 ),
+            )
+        self._commit()
+
+    def upsert_evidence_batch(self, evidence: Sequence[Evidence]) -> None:
+        """Validate source ownership once and upsert evidence in one batch."""
+        if not evidence:
+            return
+        source_ids = sorted({item.source_id for item in evidence})
+        with self._connection.cursor() as cursor:
+            cursor.execute(
+                """
+                SELECT source_id
+                FROM scholarmind_sources
+                WHERE source_id = ANY(%s)
+                """,
+                (source_ids,),
+            )
+            existing_source_ids = {str(row[0]) for row in cursor.fetchall()}
+            missing = sorted(set(source_ids) - existing_source_ids)
+            if missing:
+                raise RepositoryIntegrityError(
+                    "unknown source_ids for evidence batch: " + ", ".join(missing)
+                )
+            cursor.executemany(
+                """
+                INSERT INTO scholarmind_evidence
+                    (
+                        evidence_id,
+                        source_id,
+                        text_content,
+                        content_sha256,
+                        locator,
+                        payload
+                    )
+                VALUES (%s, %s, %s, %s, %s::jsonb, %s::jsonb)
+                ON CONFLICT (evidence_id) DO UPDATE SET
+                    source_id = EXCLUDED.source_id,
+                    text_content = EXCLUDED.text_content,
+                    content_sha256 = EXCLUDED.content_sha256,
+                    locator = EXCLUDED.locator,
+                    payload = EXCLUDED.payload
+                WHERE scholarmind_evidence.content_sha256
+                    IS DISTINCT FROM EXCLUDED.content_sha256
+                   OR scholarmind_evidence.payload IS DISTINCT FROM EXCLUDED.payload
+                """,
+                [
+                    (
+                        item.evidence_id,
+                        item.source_id,
+                        item.text,
+                        item.content_sha256,
+                        item.locator.model_dump_json(),
+                        _payload(item),
+                    )
+                    for item in evidence
+                ],
             )
         self._commit()
 
@@ -305,23 +394,44 @@ class PostgresEvidenceRepository:
             )
         return tuple(_decode(Citation, payload) for payload in payloads)
 
+    def list_embedding_ids(self, *, model: str) -> tuple[str, ...]:
+        """Return stable evidence IDs that already have this model's vector."""
+        normalized_model = model.strip()
+        if not normalized_model:
+            raise ValueError("model must not be empty")
+        with self._connection.cursor() as cursor:
+            cursor.execute(
+                """
+                SELECT vectors.evidence_id
+                FROM scholarmind_evidence_embeddings AS vectors
+                JOIN scholarmind_evidence AS evidence USING (evidence_id)
+                WHERE vectors.model = %s
+                  AND vectors.content_sha256 = evidence.content_sha256
+                ORDER BY vectors.evidence_id
+                """,
+                (normalized_model,),
+            )
+            return tuple(str(row[0]) for row in cursor.fetchall())
+
     def upsert_embedding(
         self, evidence_id: str, embedding: Sequence[float], *, model: str
     ) -> None:
         """Store a model-qualified vector without importing a pgvector Python adapter."""
-        if self.get_evidence(evidence_id) is None:
+        evidence = self.get_evidence(evidence_id)
+        if evidence is None:
             raise RepositoryIntegrityError(f"unknown evidence_id {evidence_id!r}")
         vector = self._vector_literal(embedding)
         with self._connection.cursor() as cursor:
             cursor.execute(
                 """
                 INSERT INTO scholarmind_evidence_embeddings
-                    (evidence_id, model, embedding)
-                VALUES (%s, %s, %s::vector)
+                    (evidence_id, model, content_sha256, embedding)
+                VALUES (%s, %s, %s, %s::vector)
                 ON CONFLICT (evidence_id, model) DO UPDATE SET
+                    content_sha256 = EXCLUDED.content_sha256,
                     embedding = EXCLUDED.embedding
                 """,
-                (evidence_id, model, vector),
+                (evidence_id, model, evidence.content_sha256, vector),
             )
         self._commit()
 
@@ -343,6 +453,7 @@ class PostgresEvidenceRepository:
                 FROM scholarmind_evidence_embeddings AS v
                 JOIN scholarmind_evidence AS e USING (evidence_id)
                 WHERE v.model = %s
+                  AND v.content_sha256 = e.content_sha256
                 ORDER BY v.embedding <=> %s::vector, e.evidence_id
                 LIMIT %s
                 """,

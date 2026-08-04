@@ -6,9 +6,10 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 import time
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any
 
@@ -21,6 +22,8 @@ from scholarmind.config import ScholarMindSettings
 from scholarmind.researchers import FileResearcher, FileResearchResult
 from scholarmind.retrieval import (
     EvidenceIndexer,
+    IndexingProgress,
+    JsonlIndexingProgressRecorder,
     OpenAIEmbeddingProvider,
     PostgresDenseRetriever,
     SearchResult,
@@ -86,6 +89,24 @@ def _build_parser() -> argparse.ArgumentParser:
         type=_positive_int,
         default=16,
         help="Embedding request batch size (default: 16).",
+    )
+    index_parser.add_argument(
+        "--progress-file",
+        type=Path,
+        help=(
+            "Append JSONL progress to this path. Defaults to a private "
+            ".scholarmind directory inside the dataset."
+        ),
+    )
+    index_parser.add_argument(
+        "--force-reindex",
+        action="store_true",
+        help="Recompute vectors even when this model is already committed.",
+    )
+    index_parser.add_argument(
+        "--fail-fast",
+        action="store_true",
+        help="Stop on the first isolatable evidence validation failure.",
     )
     index_parser.add_argument(
         "--dry-run",
@@ -211,6 +232,17 @@ def _dsn(args: argparse.Namespace) -> str:
     return value
 
 
+def _index_progress_path(args: argparse.Namespace, *, model: str) -> Path:
+    """Resolve a local-only progress file without leaking credentials."""
+    if args.progress_file is not None:
+        return args.progress_file.expanduser().resolve()
+    safe_model = re.sub(r"[^a-zA-Z0-9._-]+", "-", model).strip("-")
+    if not safe_model:
+        safe_model = "embedding"
+    dataset_root = args.dataset.expanduser().resolve()
+    return dataset_root / ".scholarmind" / f"index-{safe_model}.jsonl"
+
+
 def _embedder(runtime: EmbeddingRuntime) -> OpenAIEmbeddingProvider:
     return OpenAIEmbeddingProvider(
         model=runtime.model,
@@ -236,8 +268,36 @@ def _run_index(args: argparse.Namespace) -> int:
         return 0
 
     runtime = _runtime(args)
-    repository = PostgresEvidenceRepository.connect(_dsn(args))
+    resume = not args.force_reindex
+    progress_file = _index_progress_path(args, model=runtime.model)
+    recorder = JsonlIndexingProgressRecorder(
+        progress_file,
+        model=runtime.model,
+        total_count=len(bundle.evidence),
+        resume=resume,
+    )
+
+    def record_progress(progress: IndexingProgress) -> None:
+        recorder(progress)
+        print(
+            json.dumps(
+                {
+                    "status": progress.status,
+                    "batch_count": len(progress.evidence_ids),
+                    "completed_count": progress.completed_count,
+                    "total_count": progress.total_count,
+                    "indexed_count": progress.indexed_count,
+                    "resumed_count": progress.skipped_count,
+                    "failed_count": progress.failed_count,
+                },
+                ensure_ascii=False,
+            ),
+            file=sys.stderr,
+        )
+
+    repository: PostgresEvidenceRepository | None = None
     try:
+        repository = PostgresEvidenceRepository.connect(_dsn(args))
         if not args.skip_schema:
             repository.initialize_schema()
         bundle.ingest(repository)
@@ -245,20 +305,42 @@ def _run_index(args: argparse.Namespace) -> int:
             _embedder(runtime),
             model=runtime.model,
             batch_size=args.batch_size,
-        ).index(bundle.evidence, repository)
+        ).index(
+            bundle.evidence,
+            repository,
+            resume=resume,
+            continue_on_error=not args.fail_fast,
+            on_progress=record_progress,
+        )
+    except Exception as exc:
+        elapsed = time.perf_counter() - started
+        recorder.fail(exc, elapsed_seconds=elapsed)
+        raise CliError(
+            "indexing interrupted by a systemic error; fix the service and "
+            f"rerun to resume from committed vectors: {type(exc).__name__}: {exc}"
+        ) from exc
     finally:
-        repository.close()
+        if repository is not None:
+            repository.close()
 
+    elapsed = time.perf_counter() - started
+    recorder.finish(result, elapsed_seconds=elapsed)
     base_summary.update(
         {
             "embedding_model": result.model,
             "embedding_dimension": result.embedding_dimension,
+            "requested_count": result.total_count,
             "indexed_count": result.indexed_count,
-            "elapsed_seconds": round(time.perf_counter() - started, 3),
+            "resumed_count": result.skipped_count,
+            "failed_count": result.failed_count,
+            "complete": result.complete,
+            "failures": [asdict(item) for item in result.failures],
+            "progress_file": str(progress_file),
+            "elapsed_seconds": round(elapsed, 3),
         }
     )
     print(json.dumps(base_summary, ensure_ascii=False, indent=2))
-    return 0
+    return 0 if result.complete else 1
 
 
 def _search_result_payload(

@@ -217,11 +217,15 @@ docker compose \
 
 2026-08-04 已完成本机真实验收：Docker Desktop WSL2 后端启动
 `pgvector/pgvector:pg16`，启用 pgvector 0.8.6，创建 6 张证据关系表，并通过
-Repository 往返集成测试。随后使用 Qwen3-Embedding-0.6B 将 32 条开发集证据写入
-1024 维向量并完成语义检索。GitHub Actions 仍会独立启动同类服务，执行 Schema、
-CRUD、embedding 入库与向量检索，避免本机成功掩盖 CI 环境问题。若 WSL
-Integration 尚未启用，可以暂时从 WSL 调用 Docker Desktop 自带的 Windows CLI；
-推荐最终在 Docker Desktop 设置中为 Ubuntu 启用集成。
+Repository 往返集成测试。随后使用 Qwen3-Embedding-0.6B 将 49 篇开发集论文的
+6,853 条 Evidence 全部写入 1024 维向量并完成语义检索。索引器支持按模型和
+Evidence 内容哈希判断向量是否有效、默认跳过已完成记录、批量写入、JSONL
+进度审计以及失败隔离；同一数据集再次执行时可跳过全部 6,853 条记录。
+
+GitHub Actions 仍会独立启动同类服务，执行 Schema、CRUD、embedding 入库与向量
+检索，避免本机成功掩盖 CI 环境问题。若 WSL Integration 尚未启用，可以暂时从
+WSL 调用 Docker Desktop 自带的 Windows CLI；推荐最终在 Docker Desktop 设置中
+为 Ubuntu 启用集成。
 
 ## 10. CI 与本地验证
 
@@ -250,7 +254,8 @@ GitHub Actions 在每次 PR 及 main push 时执行：
 
 - Web/Baseline Writer 已有哈希与调用来源门，但尚未接入 Claim 级语义后验验证；
 - File Researcher 是库级 MVP，尚未连接主 LangGraph 节点、HTTP API 或界面；
-- 当前 Dense 默认回退不是语义模型，pgvector 也尚未冻结生产维度/HNSW；
+- 本地 Dense 已使用 Qwen3-Embedding-0.6B，但混合检索、Reranker 和噪声过滤仍需
+  在真实论文全集上调优，pgvector 也尚未冻结生产索引参数；
 - PostgreSQL 目前使用幂等 schema，尚未引入 Alembic 升降级；
 - 正式 Review/Gold schema、构建器和验证器仍是 Silver 人工复核阶段的后续工具；
 - 本地数据库需用户先安装/启用 Docker Desktop 的 WSL 集成。

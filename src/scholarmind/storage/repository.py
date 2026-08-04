@@ -66,6 +66,10 @@ class EvidenceRepository(Protocol):
 class EmbeddingRepository(Protocol):
     """Persistence port required by the batch evidence indexer."""
 
+    def list_embedding_ids(self, *, model: str) -> tuple[str, ...]:
+        """Return evidence IDs already embedded by one model."""
+        ...
+
     def upsert_embedding(
         self, evidence_id: str, embedding: Sequence[float], *, model: str
     ) -> None:

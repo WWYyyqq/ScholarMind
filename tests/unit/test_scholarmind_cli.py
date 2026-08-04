@@ -4,6 +4,7 @@ import hashlib
 import json
 from pathlib import Path
 
+from scholarmind import cli
 from scholarmind.cli import main
 
 
@@ -119,3 +120,48 @@ def test_index_reports_missing_private_artifact(
 
     assert exit_code == 2
     assert "chunks.development.jsonl" in capsys.readouterr().err
+
+
+def test_index_connection_failure_records_interruption(
+    tmp_path: Path,
+    capsys,
+    monkeypatch,
+) -> None:
+    _write_dataset(tmp_path)
+    progress_file = tmp_path / "index-progress.jsonl"
+    runtime = cli.EmbeddingRuntime(
+        model="fixture-embedding",
+        base_url="http://localhost:8001/v1",
+        api_key="local",
+        query_instruction="Represent this passage",
+    )
+    monkeypatch.setattr(cli, "_runtime", lambda _args: runtime)
+    monkeypatch.setattr(
+        cli.PostgresEvidenceRepository,
+        "connect",
+        lambda _dsn: (_ for _ in ()).throw(RuntimeError("database offline")),
+    )
+
+    exit_code = main(
+        [
+            "index",
+            "--dataset",
+            str(tmp_path),
+            "--dsn",
+            "postgresql://fixture",
+            "--progress-file",
+            str(progress_file),
+        ]
+    )
+
+    assert exit_code == 2
+    assert "RuntimeError: database offline" in capsys.readouterr().err
+    events = [
+        json.loads(line)
+        for line in progress_file.read_text(encoding="utf-8").splitlines()
+    ]
+    assert [event["event"] for event in events] == [
+        "run_started",
+        "run_interrupted",
+    ]
+    assert events[-1]["error_type"] == "RuntimeError"

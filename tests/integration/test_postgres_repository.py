@@ -72,9 +72,8 @@ def test_postgres_pgvector_round_trip_and_dense_search() -> None:
             locator=first.locator,
         )
 
-        repository.upsert_source(source)
-        repository.upsert_evidence(first)
-        repository.upsert_evidence(second)
+        repository.upsert_sources((source,))
+        repository.upsert_evidence_batch((first, second))
         repository.upsert_claim(claim)
         repository.upsert_citation(citation)
         indexing = EvidenceIndexer(
@@ -85,6 +84,10 @@ def test_postgres_pgvector_round_trip_and_dense_search() -> None:
 
         assert indexing.indexed_count == 2
         assert indexing.embedding_dimension == 2
+        assert repository.list_embedding_ids(model="fixture-v1") == tuple(
+            sorted((first.evidence_id, second.evidence_id))
+        )
+        assert repository.list_embedding_ids(model="missing-model") == ()
 
         assert repository.get_source(source.source_id) == source
         assert repository.get_evidence(first.evidence_id) == first
@@ -102,5 +105,25 @@ def test_postgres_pgvector_round_trip_and_dense_search() -> None:
             second.evidence_id,
         ]
         assert ranked[0][1] == pytest.approx(1.0)
+
+        changed_first = Evidence.create(
+            source_id=source.source_id,
+            text="The alpha model now contains revised evidence.",
+            locator=first_locator,
+        )
+        assert changed_first.evidence_id == first.evidence_id
+        repository.upsert_evidence_batch((changed_first,))
+
+        assert repository.list_embedding_ids(model="fixture-v1") == (
+            second.evidence_id,
+        )
+        fresh_only = repository.dense_search(
+            [1.0, 0.0],
+            model="fixture-v1",
+            limit=2,
+        )
+        assert [item.evidence_id for item, _ in fresh_only] == [
+            second.evidence_id
+        ]
     finally:
         repository.close()
