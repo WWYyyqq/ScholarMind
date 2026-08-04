@@ -5,6 +5,7 @@ service_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 project_root="$(cd -- "${service_dir}/../.." && pwd)"
 venv_dir="${service_dir}/.venv"
 model_dir="${SCHOLARMIND_MODEL_DIR:-/mnt/d/ScholarMindLocalLLM/models/Qwen3-14B-AWQ-modelscope}"
+gpu_memory_utilization="${SCHOLARMIND_LLM_GPU_MEMORY_UTILIZATION:-0.75}"
 
 if [[ ! -x "${venv_dir}/bin/vllm" ]]; then
   echo "vLLM is not installed in ${venv_dir}." >&2
@@ -41,7 +42,7 @@ exec "${venv_dir}/bin/vllm" serve "${model_dir}" \
   --dtype half \
   --quantization awq \
   --max-model-len 16384 \
-  --gpu-memory-utilization 0.90 \
+  --gpu-memory-utilization "${gpu_memory_utilization}" \
   --default-chat-template-kwargs '{"enable_thinking":false}' \
   --enable-auto-tool-choice \
   --tool-call-parser hermes
