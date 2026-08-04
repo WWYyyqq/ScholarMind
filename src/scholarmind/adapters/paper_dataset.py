@@ -40,6 +40,13 @@ class PaperDatasetBundle:
 
     def ingest(self, repository: EvidenceRepository) -> None:
         """Insert sources before their dependent evidence records."""
+        upsert_sources = getattr(repository, "upsert_sources", None)
+        upsert_evidence_batch = getattr(repository, "upsert_evidence_batch", None)
+        if callable(upsert_sources) and callable(upsert_evidence_batch):
+            upsert_sources(self.sources)
+            upsert_evidence_batch(self.evidence)
+            return
+
         for source in self.sources:
             repository.upsert_source(source)
         for item in self.evidence:
@@ -137,12 +144,28 @@ class PaperDatasetAdapter:
             "previous_chunk_id",
             "next_chunk_id",
         )
+        text = str(_required(record, "text"))
+        declared_digest = str(_required(record, "content_sha256"))
+        metadata = {
+            key: record.get(key) for key in metadata_keys if key in record
+        }
+        nul_characters = text.count("\x00")
+        if nul_characters:
+            text = text.replace("\x00", "")
+            if not text.strip():
+                raise PaperDatasetRecordError(
+                    "chunk text is empty after removing NUL extraction artifacts"
+                )
+            metadata["sanitization"] = {
+                "removed_nul_characters": nul_characters,
+                "original_content_sha256": declared_digest,
+            }
         return Evidence.create(
             source_id=source.source_id,
-            text=str(_required(record, "text")),
+            text=text,
             locator=locator,
-            content_sha256=str(_required(record, "content_sha256")),
-            metadata={key: record.get(key) for key in metadata_keys if key in record},
+            content_sha256=None if nul_characters else declared_digest,
+            metadata=metadata,
             identity=locator.chunk_id,
         )
 

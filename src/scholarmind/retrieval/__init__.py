@@ -2,8 +2,14 @@
 
 from .dense import DenseRetriever, HashingEmbedder, PostgresDenseRetriever
 from .hybrid import HybridRetriever, reciprocal_rank_fusion
-from .indexing import EvidenceIndexer, IndexingResult
+from .indexing import (
+    EvidenceIndexer,
+    IndexingFailure,
+    IndexingProgress,
+    IndexingResult,
+)
 from .openai_embedding import OpenAIEmbeddingProvider
+from .progress import JsonlIndexingProgressRecorder
 from .sparse import SparseRetriever
 from .types import EmbeddingProvider, Retriever, SearchResult
 
@@ -13,7 +19,10 @@ __all__ = [
     "EvidenceIndexer",
     "HashingEmbedder",
     "HybridRetriever",
+    "IndexingFailure",
+    "IndexingProgress",
     "IndexingResult",
+    "JsonlIndexingProgressRecorder",
     "OpenAIEmbeddingProvider",
     "PostgresDenseRetriever",
     "Retriever",

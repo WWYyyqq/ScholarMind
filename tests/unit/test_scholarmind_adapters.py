@@ -92,6 +92,27 @@ def test_pr5_records_preserve_page_chunk_and_block_location() -> None:
     assert evidence.locator.bbox == (10.0, 20.0, 300.0, 400.0)
 
 
+def test_paper_chunk_removes_nul_artifact_and_preserves_audit_digest() -> None:
+    original_text = "The method\x00 combines dense and sparse retrieval."
+    bundle = PaperDatasetAdapter.from_records(
+        [_manifest_record()],
+        [_chunk_record(text=original_text)],
+    )
+
+    evidence = bundle.evidence[0]
+    cleaned_text = "The method combines dense and sparse retrieval."
+    assert evidence.text == cleaned_text
+    assert evidence.content_sha256 == hashlib.sha256(
+        cleaned_text.encode("utf-8")
+    ).hexdigest()
+    assert evidence.metadata["sanitization"] == {
+        "removed_nul_characters": 1,
+        "original_content_sha256": hashlib.sha256(
+            original_text.encode("utf-8")
+        ).hexdigest(),
+    }
+
+
 def test_exact_duplicate_manifest_rows_create_one_source() -> None:
     duplicate = _manifest_record(
         file_id="file-fedcba9876543210",
