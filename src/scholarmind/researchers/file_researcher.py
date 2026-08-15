@@ -22,6 +22,7 @@ _REFERENCE_START_RE = re.compile(r"^\[\d{1,4}\]\s+")
 _YEAR_RE = re.compile(r"\b(?:19|20)\d{2}\b")
 _ROMAN_HEADING_RE = re.compile(r"^(?:[IVXLCDM]+\.|\d+(?:\.\d+)*\.?)$")
 _AUTHOR_FRAGMENT_RE = re.compile(r'^[A-Z][A-Za-z-]{1,30},\s+["“]')
+_CLAIM_TERMINAL_PUNCTUATION_RE = re.compile(r"[.!?。！？][\"'”’)]?$")
 _QUERY_STOPWORDS = frozenset(
     {
         "a",
@@ -375,6 +376,8 @@ def _best_sentence(text: str, *, question: str) -> str:
 def _is_informative_sentence(sentence: str) -> bool:
     """Reject headings, bibliography entries, and short extraction debris."""
     if len(sentence) < 28 or _ROMAN_HEADING_RE.fullmatch(sentence):
+        return False
+    if not _CLAIM_TERMINAL_PUNCTUATION_RE.search(sentence):
         return False
     if sentence[0].isascii() and sentence[0].islower():
         return False

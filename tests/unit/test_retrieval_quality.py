@@ -65,6 +65,26 @@ def test_quality_policy_rejects_short_heading_and_reference_section() -> None:
     assert "reference_section" in reference_assessment.reasons
 
 
+def test_quality_policy_rejects_spilled_reference_list_without_section_label() -> None:
+    policy = EvidenceQualityPolicy()
+    reference_list = _evidence(
+        text=(
+            "Symposium proceedings, pages 1-9. "
+            "[74] Ruyue Xin and Peng Chen. 2023. Causal root cause "
+            "localization for microservices. Journal of Systems. "
+            "[75] Xiang Xuan and Kevin Murphy. 2007. Modeling changing "
+            "dependency structure in multivariate time series."
+        ),
+        section="document",
+        chunk_id="chunk-spilled-references",
+    )
+
+    assessment = policy.assess(reference_list)
+
+    assert not assessment.accepted
+    assert "reference_list" in assessment.reasons
+
+
 def test_quality_filter_overfetches_and_preserves_substantive_evidence() -> None:
     noise = _evidence(
         text="2.3.1 Time Series Anomaly Detection",

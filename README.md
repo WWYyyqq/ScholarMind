@@ -37,11 +37,12 @@ Claim-Evidence / Citation Verification
 | Day 7：全量可恢复索引 | ✅ 提前完成 | 49 篇论文、6,853 条 1024 维向量，支持断点续跑 · [详细日志](docs/development/daily/2026-08-04-day-07.md) |
 | Day 8：混合检索与本地重排 | ✅ 加速完成 | BM25 + pgvector + RRF + 质量门 + Qwen Rerank · [详细日志](docs/development/daily/2026-08-04-day-08.md) |
 | Day 9：ScholarMind Agent 与 API | ✅ 核心代码完成 | 公共 Research Service + LangGraph API + 三态结构化输出 · [详细日志](docs/development/daily/2026-08-15-day-09.md) |
+| Day 10：真实 API 与运行可靠性 | ✅ 本地真实闭环通过 | Runtime Doctor + 启动脚本 + API 冒烟 + 引用噪声/截断 Claim 拦截 · [详细日志](docs/development/daily/2026-08-16-day-10.md) |
 | 论文数据预处理（专项） | ✅ 完成并通过独立验证 | [数据说明](docs/evaluation/paper-dataset/README.md) · [Gold 标注手册](docs/evaluation/paper-dataset/silver-to-gold.md) · [详细日志](docs/development/supplemental/2026-08-01-paper-dataset-preparation.md) |
 | 证据流水线基础（专项） | ✅ 代码、单测与真实 pgvector CI 通过 | Source/Evidence/Claim/Citation、pgvector、BM25/RRF、File Researcher、Verifier 和自动 CI；不等于后续各 Day 已全部验收 |
 | 本地论文向量库 | ✅ development + test 均可检索 | 82 篇论文、10,879 条 1024 维向量；模型/内容哈希校验、断点续传与分区隔离 |
 | 本地论文检索 | ✅ 核心闭环完成 | Dense、BM25、RRF、证据质量过滤和本地 Qwen 二阶段重排 |
-| Agent/API | ✅ 已接线 | CLI 与 LangGraph 共用同一 Research Service；真实服务冒烟仍需启动 PostgreSQL 和 Qwen Embedding |
+| Agent/API | ✅ 已真实验收 | CLI 与 LangGraph 共用同一 Research Service；真实 Hybrid+Rerank 请求返回 5/5/5 Evidence/Claim/Citation |
 | Web 搜索 | ⏳ 未接入 | 当前使用 `SEARCH_API=none` |
 | 简历可投递版本 | 计划 2026-08-26 | Day 28 |
 | `v0.1.0` | 计划 2026-09-09 | Day 42 |
@@ -53,6 +54,7 @@ Claim-Evidence / Citation Verification
 - [项目总览](docs/project/overview.md)
 - [开发计划与日志](docs/development/README.md)
 - [可靠性与证据流水线](docs/architecture/evidence-pipeline.md)
+- [完整本地运行与故障排查](docs/guides/local-runtime.md)
 - [Baseline 评测与论文数据](docs/evaluation/README.md)
 - [本地 Qwen3 / vLLM 服务](services/local-llm/README.md)
 - [Silver → Gold 人工标注手册](docs/evaluation/paper-dataset/silver-to-gold.md)
@@ -100,7 +102,7 @@ GraphRAG、Kubernetes、多租户、第二个本地模型等功能不进入 `v0.
 | 1 | Day 7 · 8/5 | 第一周复盘与架构冻结 | ✅ 已加速完成 |
 | 2 | Day 8 · 8/6 | 混合检索、质量门与 Qwen Rerank | ✅ 已加速完成 |
 | 2 | Day 9 · 8/15 | 接入 ScholarMind Agent 与 LangGraph API | ✅ 已加速完成 |
-| 2 | Day 10 · 8/8 | 实现 Claim 与 Citation | 计划 |
+| 2 | Day 10 · 8/16 | 真实 API 闭环、准确性加固与运行自检 | ✅ 已加速完成 |
 | 2 | Day 11 · 8/9 | 模型测试与 Fixture | 计划 |
 | 2 | Day 12 · 8/10 | PostgreSQL 与 pgvector | 计划 |
 | 2 | Day 13 · 8/11 | 网页来源注册与快照 | 计划 |

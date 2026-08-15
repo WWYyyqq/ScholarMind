@@ -413,6 +413,36 @@ class PostgresEvidenceRepository:
             )
             return tuple(str(row[0]) for row in cursor.fetchall())
 
+    def statistics(self, *, model: str) -> dict[str, int]:
+        """Return lightweight corpus counts for health checks and diagnostics."""
+        normalized_model = model.strip()
+        if not normalized_model:
+            raise ValueError("model must not be empty")
+        with self._connection.cursor() as cursor:
+            cursor.execute(
+                """
+                SELECT
+                    (SELECT count(*) FROM scholarmind_sources),
+                    (SELECT count(*) FROM scholarmind_evidence),
+                    (
+                        SELECT count(*)
+                        FROM scholarmind_evidence_embeddings AS vectors
+                        JOIN scholarmind_evidence AS evidence USING (evidence_id)
+                        WHERE vectors.model = %s
+                          AND vectors.content_sha256 = evidence.content_sha256
+                    )
+                """,
+                (normalized_model,),
+            )
+            row = cursor.fetchone()
+        if row is None:  # pragma: no cover - aggregate SELECT always returns one row
+            raise RuntimeError("database statistics query returned no row")
+        return {
+            "sources": int(row[0]),
+            "evidence": int(row[1]),
+            "indexed_embeddings": int(row[2]),
+        }
+
     def upsert_embedding(
         self, evidence_id: str, embedding: Sequence[float], *, model: str
     ) -> None:

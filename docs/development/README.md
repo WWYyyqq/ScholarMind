@@ -25,7 +25,8 @@
 | Day 6 | 2026-08-04 | 本地 Qwen Embedding + pgvector 真实闭环 | ✅ 完成 | [详细日志](daily/2026-08-04-day-06.md) | `c9ea00e` |
 | Day 7 | 2026-08-04 | 全量论文向量化与可恢复索引 | ✅ 提前完成 | [详细日志](daily/2026-08-04-day-07.md) | `f8930d7` |
 | Day 8 | 2026-08-04 | 混合检索、证据质量过滤与本地 Qwen 重排 | ✅ 加速完成 | [详细日志](daily/2026-08-04-day-08.md) | `9e559f1` |
-| Day 9 | 2026-08-15 | 公共 Research Service、LangGraph Agent 与 API | ✅ 核心代码完成 | [详细日志](daily/2026-08-15-day-09.md) | 待 PR 合并 |
+| Day 9 | 2026-08-15 | 公共 Research Service、LangGraph Agent 与 API | ✅ 完成并合并 | [详细日志](daily/2026-08-15-day-09.md) | `4cd9884` |
+| Day 10 | 2026-08-16 | 真实 API 闭环、准确性加固与运行自检 | ✅ 完成 | [详细日志](daily/2026-08-16-day-10.md) | PR #11 · `4f81700` |
 
 ## 专项记录
 

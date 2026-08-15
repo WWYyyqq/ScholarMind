@@ -7,6 +7,7 @@
 | 我想做什么 | 从这里开始 |
 |---|---|
 | 了解项目目标、范围与里程碑 | [项目总览](project/overview.md) |
+| 启动并检查完整本地论文 Agent | [本地运行手册](guides/local-runtime.md) |
 | 启动本地 Qwen3 与 vLLM | [本地模型服务](../services/local-llm/README.md) |
 | 查看 42 天计划和每日记录 | [开发计划与日志](development/README.md) |
 | 理解 Baseline 状态图 | [Baseline 架构](architecture/baseline.md) |
@@ -31,6 +32,8 @@ docs/
 ├── architecture/
 │   ├── baseline.md
 │   └── evidence-pipeline.md
+├── guides/
+│   └── local-runtime.md
 ├── evaluation/
 │   ├── README.md
 │   ├── baseline-error-analysis.md

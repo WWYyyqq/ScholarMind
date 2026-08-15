@@ -53,11 +53,17 @@ jobs:
 
       - name: Lint
         run: |
-          uv run ruff check src/scholarmind tests/unit tests/integration scripts/evaluate_paper_retrieval.py
+          uv run ruff check \
+            src/scholarmind \
+            tests/unit \
+            tests/integration \
+            scripts/evaluate_paper_retrieval.py \
+            scripts/smoke_scholarmind_api.py
           uv run ruff check --select F \
             src/open_deep_research/deep_researcher.py \
             src/open_deep_research/state.py \
             scripts/run_baseline.py
+          bash -n scripts/start_scholarmind_agent.sh
 
       - name: Run unit tests
         run: uv run pytest tests/unit
