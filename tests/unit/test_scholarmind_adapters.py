@@ -74,9 +74,7 @@ def _chunk_record(**updates):
 
 
 def test_pr5_records_preserve_page_chunk_and_block_location() -> None:
-    bundle = PaperDatasetAdapter.from_records(
-        [_manifest_record()], [_chunk_record()]
-    )
+    bundle = PaperDatasetAdapter.from_records([_manifest_record()], [_chunk_record()])
 
     assert len(bundle.sources) == 1
     assert len(bundle.evidence) == 1
@@ -102,14 +100,28 @@ def test_paper_chunk_removes_nul_artifact_and_preserves_audit_digest() -> None:
     evidence = bundle.evidence[0]
     cleaned_text = "The method combines dense and sparse retrieval."
     assert evidence.text == cleaned_text
-    assert evidence.content_sha256 == hashlib.sha256(
-        cleaned_text.encode("utf-8")
-    ).hexdigest()
+    assert (
+        evidence.content_sha256
+        == hashlib.sha256(cleaned_text.encode("utf-8")).hexdigest()
+    )
     assert evidence.metadata["sanitization"] == {
         "removed_nul_characters": 1,
         "original_content_sha256": hashlib.sha256(
             original_text.encode("utf-8")
         ).hexdigest(),
+    }
+
+
+def test_paper_chunk_removes_nul_artifact_from_section() -> None:
+    bundle = PaperDatasetAdapter.from_records(
+        [_manifest_record()],
+        [_chunk_record(section="3 Method\x00")],
+    )
+
+    evidence = bundle.evidence[0]
+    assert evidence.locator.section == "3 Method"
+    assert evidence.metadata["sanitization"] == {
+        "removed_nul_section_characters": 1,
     }
 
 
@@ -163,18 +175,12 @@ def test_default_bundle_excludes_test_split_even_when_given_all_records() -> Non
     chunks = [_chunk_record(), test_chunk]
 
     development = PaperDatasetAdapter.from_records(manifests, chunks)
-    held_out = PaperDatasetAdapter.from_records(
-        manifests, chunks, dataset_split="test"
-    )
+    held_out = PaperDatasetAdapter.from_records(manifests, chunks, dataset_split="test")
 
     assert development.dataset_split == "development"
     assert held_out.dataset_split == "test"
-    assert {item.paper_id for item in development.sources} == {
-        "paper-0123456789abcdef"
-    }
-    assert {item.paper_id for item in held_out.sources} == {
-        "paper-fedcba9876543210"
-    }
+    assert {item.paper_id for item in development.sources} == {"paper-0123456789abcdef"}
+    assert {item.paper_id for item in held_out.sources} == {"paper-fedcba9876543210"}
     assert {item.evidence_id for item in development.evidence}.isdisjoint(
         item.evidence_id for item in held_out.evidence
     )

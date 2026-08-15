@@ -96,15 +96,52 @@ def test_index_dry_run_reads_only_development_contract(
     assert payload["dry_run"] is True
 
 
+def test_index_dry_run_reads_only_test_contract(
+    tmp_path: Path,
+    capsys,
+) -> None:
+    manifest = _manifest_record()
+    manifest["dataset_split"] = "test"
+    manifest["tuning_allowed"] = False
+    chunk = _chunk_record(1)
+    chunk["dataset_split"] = "test"
+    chunk["tuning_allowed"] = False
+    (tmp_path / "canonical_manifest.jsonl").write_text(
+        json.dumps(manifest) + "\n",
+        encoding="utf-8",
+    )
+    evaluation = tmp_path / "evaluation"
+    evaluation.mkdir()
+    (evaluation / "corpus.chunks.jsonl").write_text(
+        json.dumps(chunk) + "\n",
+        encoding="utf-8",
+    )
+
+    exit_code = main(
+        [
+            "index",
+            "--dataset",
+            str(tmp_path),
+            "--dataset-split",
+            "test",
+            "--dry-run",
+        ]
+    )
+
+    assert exit_code == 0
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["dataset_split"] == "test"
+    assert payload["source_count"] == 1
+    assert payload["evidence_count"] == 1
+
+
 def test_index_limit_produces_small_service_free_smoke_bundle(
     tmp_path: Path,
     capsys,
 ) -> None:
     _write_dataset(tmp_path)
 
-    exit_code = main(
-        ["index", "--dataset", str(tmp_path), "--limit", "1", "--dry-run"]
-    )
+    exit_code = main(["index", "--dataset", str(tmp_path), "--limit", "1", "--dry-run"])
 
     assert exit_code == 0
     payload = json.loads(capsys.readouterr().out)
