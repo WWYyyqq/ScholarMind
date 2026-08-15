@@ -17,6 +17,7 @@ _REFERENCE_ENTRY_RE = re.compile(
     r"^(?:\[\d{1,4}\]|\d{1,4}\.)\s+.{0,100}\b(?:19|20)\d{2}\b",
     re.IGNORECASE,
 )
+_REFERENCE_LIST_MARKER_RE = re.compile(r"(?:^|\s)\[\d{1,4}\]\s+(?=[A-Z])")
 _RUNNING_HEADER_RE = re.compile(r"^\d+:\d+\s+")
 _TERMINAL_PUNCTUATION_RE = re.compile(r"[.!?。！？][\"'”’)]?$")
 
@@ -65,6 +66,12 @@ class EvidenceQualityPolicy:
             hard_reasons.append("reference_section")
         if _REFERENCE_ENTRY_RE.search(text[:240]):
             hard_reasons.append("reference_entry")
+        # PDF chunks sometimes begin with the tail of the previous reference,
+        # so an anchored single-entry check is not sufficient. Two numbered
+        # entries in one passage are a conservative signal for bibliography
+        # content and avoid rejecting ordinary in-text citations such as [12].
+        if len(_REFERENCE_LIST_MARKER_RE.findall(text)) >= 2:
+            hard_reasons.append("reference_list")
 
         has_terminal_punctuation = bool(_TERMINAL_PUNCTUATION_RE.search(text))
         if (

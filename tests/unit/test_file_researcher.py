@@ -157,6 +157,30 @@ def test_extractive_generator_skips_reference_and_heading_fragments() -> None:
     assert drafts[0].text.startswith("Metrics are standardized")
 
 
+def test_extractive_generator_skips_truncated_sentence_at_chunk_boundary() -> None:
+    source = _source()
+    evidence = _evidence(
+        source,
+        text=(
+            "The dependency graph then propagates anomaly scores to rank "
+            "candidate root causes. "
+            "Random-walk methods rank likely root causes because frequently "
+            "visited services are more likely to have caused the observed"
+        ),
+    )
+
+    drafts = ExtractiveClaimGenerator().generate(
+        "How does a dependency graph rank root causes?",
+        (evidence,),
+    )
+
+    assert len(drafts) == 1
+    assert drafts[0].text == (
+        "The dependency graph then propagates anomaly scores to rank "
+        "candidate root causes."
+    )
+
+
 def test_no_page_located_evidence_blocks_report_generation() -> None:
     source = _source()
     unlocated = _evidence(source, page=None)

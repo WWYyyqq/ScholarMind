@@ -202,3 +202,27 @@ def test_index_connection_failure_records_interruption(
         "run_interrupted",
     ]
     assert events[-1]["error_type"] == "RuntimeError"
+
+
+def test_doctor_returns_structured_readiness(capsys, monkeypatch) -> None:
+    monkeypatch.setenv("SCHOLARMIND_POSTGRES_DSN", "postgresql://fixture")
+    monkeypatch.setattr(
+        cli,
+        "check_runtime",
+        lambda **_kwargs: {
+            "status": "ready",
+            "ready": True,
+            "checks": {
+                "database": {"status": "ok"},
+                "embedding": {"status": "ok"},
+                "reranker": {"status": "ok"},
+            },
+        },
+    )
+
+    exit_code = main(["doctor"])
+
+    assert exit_code == 0
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["command"] == "doctor"
+    assert payload["ready"] is True

@@ -19,6 +19,7 @@ from scholarmind.adapters.paper_dataset import (
     PaperDatasetRecordError,
 )
 from scholarmind.config import ScholarMindSettings
+from scholarmind.health import check_runtime
 from scholarmind.researchers import FileResearchResult
 from scholarmind.retrieval import (
     EvidenceIndexer,
@@ -42,6 +43,7 @@ from scholarmind.storage import (
 )
 
 DEFAULT_EMBEDDING_MODEL = "qwen3-embedding-0.6b-local"
+DEFAULT_EMBEDDING_DIMENSION = 1024
 
 
 class CliError(RuntimeError):
@@ -163,6 +165,19 @@ def _build_parser() -> argparse.ArgumentParser:
     )
     _add_runtime_arguments(research_parser)
     research_parser.set_defaults(handler=_run_research)
+
+    doctor_parser = commands.add_parser(
+        "doctor",
+        help="Check PostgreSQL, Qwen Embedding, and Qwen reranking readiness.",
+    )
+    doctor_parser.add_argument(
+        "--embedding-dimension",
+        type=_positive_int,
+        default=DEFAULT_EMBEDDING_DIMENSION,
+        help="Expected embedding width (default: 1024).",
+    )
+    _add_runtime_arguments(doctor_parser)
+    doctor_parser.set_defaults(handler=_run_doctor)
     return parser
 
 
@@ -493,6 +508,19 @@ def _run_research(args: argparse.Namespace) -> int:
             file=sys.stderr,
         )
     return 0 if result.publication_ready else 2
+
+
+def _run_doctor(args: argparse.Namespace) -> int:
+    payload = {
+        "command": "doctor",
+        **check_runtime(
+            dsn=_dsn(args),
+            runtime=_runtime(args),
+            expected_dimension=args.embedding_dimension,
+        ),
+    }
+    print(json.dumps(payload, ensure_ascii=False, indent=2))
+    return 0 if payload["ready"] else 2
 
 
 def main(argv: list[str] | None = None) -> int:
