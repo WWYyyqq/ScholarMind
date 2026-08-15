@@ -29,6 +29,7 @@ class OpenAIEmbeddingProvider:
         self.query_instruction = (
             " ".join(query_instruction.split()) if query_instruction else None
         )
+        self._owns_client = client is None
         self._client = client or self._build_client(api_key)
 
     def _build_client(self, api_key: str) -> Any:
@@ -95,6 +96,22 @@ class OpenAIEmbeddingProvider:
                 "embedding endpoint returned inconsistent vector dimensions"
             )
         return vectors
+
+    def close(self) -> None:
+        """Close the internally owned OpenAI client."""
+        if not self._owns_client:
+            return
+        close = getattr(self._client, "close", None)
+        if callable(close):
+            close()
+
+    def __enter__(self) -> OpenAIEmbeddingProvider:
+        """Return the provider for context-managed callers."""
+        return self
+
+    def __exit__(self, *_: object) -> None:
+        """Release the internally owned client."""
+        self.close()
 
 
 def _is_loopback_url(value: str) -> bool:

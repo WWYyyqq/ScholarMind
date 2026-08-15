@@ -86,3 +86,37 @@ def test_only_loopback_endpoints_bypass_environment_proxies() -> None:
     assert _is_loopback_url("http://[::1]:8001/v1")
     assert not _is_loopback_url("https://api.example.com/v1")
     assert not _is_loopback_url("not a URL")
+
+
+def test_provider_closes_only_an_internally_created_client(monkeypatch) -> None:
+    owned_client = SimpleNamespace(
+        embeddings=FakeEmbeddings(),
+        closed=False,
+    )
+    owned_client.close = lambda: setattr(owned_client, "closed", True)
+    monkeypatch.setattr(
+        OpenAIEmbeddingProvider,
+        "_build_client",
+        lambda self, api_key: owned_client,
+    )
+    owned = OpenAIEmbeddingProvider(
+        model="qwen3-embedding-local",
+        base_url="http://localhost:8001/v1",
+    )
+
+    external_client = SimpleNamespace(
+        embeddings=FakeEmbeddings(),
+        closed=False,
+    )
+    external_client.close = lambda: setattr(external_client, "closed", True)
+    external = OpenAIEmbeddingProvider(
+        model="qwen3-embedding-local",
+        base_url="http://localhost:8001/v1",
+        client=external_client,
+    )
+
+    owned.close()
+    external.close()
+
+    assert owned_client.closed
+    assert not external_client.closed

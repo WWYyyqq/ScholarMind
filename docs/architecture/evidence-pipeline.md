@@ -193,7 +193,39 @@ question
 - 全部失败或没有页码 Evidence：返回 `failed`，`report=None`；
 - 全部有效：返回 `success`。
 
-## 8. 项目独立环境
+## 8. LangGraph Agent 与 API
+
+`src/scholarmind/service.py` 是 CLI 与 Agent 共用的 composition root。它负责：
+
+1. 从 `SCHOLARMIND_*` 项目变量解析 PostgreSQL 与 Qwen Embedding 配置；
+2. 组装 Dense、BM25、RRF、质量门和可选 Reranker；
+3. 构造 File Researcher 并加载 Source 元数据；
+4. 在正常、异常和初始化失败路径关闭数据库与 HTTP 客户端；
+5. 将 Evidence、Claim、Verification 和 Citation 序列化为稳定载荷。
+
+`src/scholarmind/graph.py` 在这个服务之上暴露单节点 LangGraph：
+
+```text
+{question, retrieval_mode, top_k}
+                  │
+                  ▼
+       ScholarMind Research Service
+                  │
+                  ▼
+{status, report, evidence, claims, verifications,
+ citations, errors, counts, publication_ready}
+```
+
+该图以 `ScholarMind Researcher` 同时注册到 `langgraph.local.json` 和
+`langgraph.json`。LangGraph Server 因此直接提供 HTTP API 和 Studio 调试入口，
+不再额外维护一套 FastAPI 组装逻辑。请求校验、数据库不可用、模型不可用和检索
+失败均返回机器可读错误；`failed` 必须满足 `report=null` 和
+`publication_ready=false`。
+
+这次接线只覆盖本地论文证据链，尚未把它路由进上游 Web Supervisor。两个图独立
+存在，便于做 Baseline 与 ScholarMind 消融，也避免在核心链路稳定前扩大改动面。
+
+## 9. 项目独立环境
 
 Python 依赖继续安装在仓库自己的 `.venv`，不会修改系统 Python、Conda 或其他
 项目：
@@ -206,7 +238,7 @@ uv sync --locked --extra dev --extra postgres
 `postgres` extra 只增加 psycopg 与 pgvector Python 包。模型权重仍由单独的
 `services/local-llm/.venv` 和 D 盘模型目录管理。
 
-## 9. 本地 PostgreSQL + pgvector
+## 10. 本地 PostgreSQL + pgvector
 
 本地服务使用独立 Compose 文件、loopback 端口和命名卷：
 
@@ -262,7 +294,7 @@ GitHub Actions 仍会独立启动同类服务，执行 Schema、CRUD、embedding
 WSL 调用 Docker Desktop 自带的 Windows CLI；推荐最终在 Docker Desktop 设置中
 为 Ubuntu 启用集成。
 
-## 10. CI 与本地验证
+## 11. CI 与本地验证
 
 GitHub Actions 在每次 PR 及 main push 时执行：
 
@@ -283,12 +315,13 @@ GitHub Actions 在每次 PR 及 main push 时执行：
 最后一条会在没有 `SCHOLARMIND_TEST_DATABASE_DSN` 时明确 skip，不会伪装成数据库
 已经运行。
 
-## 11. 当前边界
+## 12. 当前边界
 
 已实现的是可测试的证据流水线基础，不是完整产品：
 
 - Web/Baseline Writer 已有哈希与调用来源门，但尚未接入 Claim 级语义后验验证；
-- File Researcher 是库级 MVP，尚未连接主 LangGraph 节点、HTTP API 或界面；
+- File Researcher 已连接独立的 ScholarMind LangGraph 与 HTTP API，但尚未路由进
+  上游 Web Supervisor，也没有证据查看界面；
 - 本地论文链路已接入 Qwen Dense、BM25、RRF、质量过滤和 Qwen Rerank，但当前
   指标来自待人工复核 Silver 标签；Gold 数据集与正式消融尚未完成，pgvector
   生产索引参数也尚未冻结；

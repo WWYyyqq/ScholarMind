@@ -9,7 +9,7 @@ import json
 import re
 import sys
 import time
-from dataclasses import asdict, dataclass
+from dataclasses import asdict
 from pathlib import Path
 from typing import Any
 
@@ -19,21 +19,22 @@ from scholarmind.adapters.paper_dataset import (
     PaperDatasetRecordError,
 )
 from scholarmind.config import ScholarMindSettings
-from scholarmind.researchers import FileResearcher, FileResearchResult
+from scholarmind.researchers import FileResearchResult
 from scholarmind.retrieval import (
     EvidenceIndexer,
-    EvidenceQualityPolicy,
-    HybridRetriever,
     IndexingProgress,
     JsonlIndexingProgressRecorder,
     OpenAIEmbeddingProvider,
-    OpenAIRerankProvider,
-    PostgresDenseRetriever,
-    QualityFilteredRetriever,
-    RerankingRetriever,
-    Retriever,
     SearchResult,
-    SparseRetriever,
+)
+from scholarmind.service import (
+    EmbeddingRuntime,
+    RetrievalMode,
+    RetrievalPipeline,
+    ScholarMindResearchService,
+    build_embedder,
+    build_retriever,
+    research_result_payload,
 )
 from scholarmind.storage import (
     OptionalPostgresDependencyError,
@@ -45,16 +46,6 @@ DEFAULT_EMBEDDING_MODEL = "qwen3-embedding-0.6b-local"
 
 class CliError(RuntimeError):
     """Represent an expected user-facing command failure."""
-
-
-@dataclass(frozen=True)
-class EmbeddingRuntime:
-    """Resolved OpenAI-compatible embedding endpoint configuration."""
-
-    model: str
-    base_url: str
-    api_key: str
-    query_instruction: str
 
 
 def _positive_int(value: str) -> int:
@@ -278,68 +269,20 @@ def _index_progress_path(args: argparse.Namespace, *, model: str) -> Path:
 
 
 def _embedder(runtime: EmbeddingRuntime) -> OpenAIEmbeddingProvider:
-    return OpenAIEmbeddingProvider(
-        model=runtime.model,
-        base_url=runtime.base_url,
-        api_key=runtime.api_key,
-        query_instruction=runtime.query_instruction,
-    )
+    return build_embedder(runtime)
 
 
 def _build_retriever(
     args: argparse.Namespace,
     repository: PostgresEvidenceRepository,
     runtime: EmbeddingRuntime,
-) -> tuple[Retriever, OpenAIRerankProvider | None]:
-    """Build the selected real retrieval pipeline and its owned reranker."""
-    dense = PostgresDenseRetriever(
+) -> RetrievalPipeline:
+    """Build the selected real retrieval pipeline and its owned providers."""
+    return build_retriever(
         repository,
-        embedder=_embedder(runtime),
-        model=runtime.model,
-    )
-    if args.retrieval_mode == "dense":
-        return dense, None
-
-    settings = ScholarMindSettings.from_env()
-    quality_policy = EvidenceQualityPolicy()
-    filtered_dense = QualityFilteredRetriever(
-        dense,
-        policy=quality_policy,
-        candidate_multiplier=3,
-    )
-    sparse_corpus = tuple(
-        item
-        for item in repository.list_evidence()
-        if quality_policy.assess(item).accepted
-    )
-    filtered_sparse = QualityFilteredRetriever(
-        SparseRetriever(sparse_corpus),
-        policy=quality_policy,
-        candidate_multiplier=1,
-    )
-    hybrid: Retriever = HybridRetriever(
-        filtered_dense,
-        filtered_sparse,
-        rrf_k=settings.rrf_k,
-        dense_weight=settings.dense_weight,
-        sparse_weight=settings.sparse_weight,
-        candidate_multiplier=2,
-    )
-    if args.retrieval_mode == "hybrid":
-        return hybrid, None
-
-    reranker = OpenAIRerankProvider(
-        model=runtime.model,
-        base_url=runtime.base_url,
-        api_key=runtime.api_key,
-    )
-    return (
-        RerankingRetriever(
-            hybrid,
-            reranker=reranker,
-            candidate_multiplier=2,
-        ),
-        reranker,
+        runtime=runtime,
+        settings=ScholarMindSettings.from_env(),
+        retrieval_mode=args.retrieval_mode,
     )
 
 
@@ -391,13 +334,15 @@ def _run_index(args: argparse.Namespace) -> int:
         )
 
     repository: PostgresEvidenceRepository | None = None
+    embedder: OpenAIEmbeddingProvider | None = None
     try:
         repository = PostgresEvidenceRepository.connect(_dsn(args))
         if not args.skip_schema:
             repository.initialize_schema()
         bundle.ingest(repository)
+        embedder = _embedder(runtime)
         result = EvidenceIndexer(
-            _embedder(runtime),
+            embedder,
             model=runtime.model,
             batch_size=args.batch_size,
         ).index(
@@ -415,6 +360,8 @@ def _run_index(args: argparse.Namespace) -> int:
             f"rerun to resume from committed vectors: {type(exc).__name__}: {exc}"
         ) from exc
     finally:
+        if embedder is not None:
+            embedder.close()
         if repository is not None:
             repository.close()
 
@@ -473,21 +420,21 @@ def _search_result_payload(
 
 def _run_search(args: argparse.Namespace) -> int:
     runtime = _runtime(args)
-    reranker: OpenAIRerankProvider | None = None
+    pipeline: RetrievalPipeline | None = None
     repository = PostgresEvidenceRepository.connect(_dsn(args))
     try:
-        retriever, reranker = _build_retriever(
+        pipeline = _build_retriever(
             args,
             repository,
             runtime,
         )
-        results = retriever.search(args.query, limit=args.top_k)
+        results = pipeline.retriever.search(args.query, limit=args.top_k)
         source_titles = {
             source.source_id: source.title for source in repository.list_sources()
         }
     finally:
-        if reranker is not None:
-            reranker.close()
+        if pipeline is not None:
+            pipeline.close()
         repository.close()
     payload = {
         "command": "search",
@@ -505,42 +452,22 @@ def _run_search(args: argparse.Namespace) -> int:
 
 
 def _research_payload(
-    result: FileResearchResult, *, retrieval_mode: str
+    result: FileResearchResult, *, retrieval_mode: RetrievalMode
 ) -> dict[str, Any]:
-    return {
-        "command": "research",
-        "retrieval_mode": retrieval_mode,
-        "question": result.question,
-        "status": result.status.value,
-        "publication_ready": result.publication_ready,
-        "report": result.report,
-        "errors": list(result.errors),
-        "evidence": [item.model_dump(mode="json") for item in result.evidence],
-        "claims": [item.model_dump(mode="json") for item in result.claims],
-        "citations": [item.model_dump(mode="json") for item in result.citations],
-    }
+    payload = research_result_payload(result, retrieval_mode=retrieval_mode)
+    return {"command": "research", **payload}
 
 
 def _run_research(args: argparse.Namespace) -> int:
     runtime = _runtime(args)
-    reranker: OpenAIRerankProvider | None = None
-    repository = PostgresEvidenceRepository.connect(_dsn(args))
-    try:
-        retriever, reranker = _build_retriever(
-            args,
-            repository,
-            runtime,
-        )
-        sources = {source.source_id: source for source in repository.list_sources()}
-        result = FileResearcher(
-            retriever,
-            sources=sources,
+    with ScholarMindResearchService.connect(
+            settings=ScholarMindSettings.from_env(),
+            dsn=_dsn(args),
+            runtime=runtime,
+            retrieval_mode=args.retrieval_mode,
             top_k=args.top_k,
-        ).research(args.question)
-    finally:
-        if reranker is not None:
-            reranker.close()
-        repository.close()
+    ) as service:
+        result = service.research(args.question)
 
     if args.format == "json":
         print(
