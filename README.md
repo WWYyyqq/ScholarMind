@@ -209,6 +209,7 @@ curl -sS http://127.0.0.1:2024/runs/wait \
     "input": {
       "question": "Which evidence supports the reported method?",
       "retrieval_mode": "hybrid-rerank",
+      "verification_mode": "deterministic",
       "top_k": 5
     }
   }'
@@ -217,6 +218,16 @@ curl -sS http://127.0.0.1:2024/runs/wait \
 The response always contains `success`, `partial`, or `failed`. A failed
 database/model request returns `report: null`; it is never rendered as a
 successful research report.
+
+`verification_mode=semantic` 会在数字、否定极性和 Evidence ID 硬门之后调用本地
+Qwen3-14B 判断同义改写、关系方向与多段证据。只有达到置信阈值且返回有效证据
+索引的 Claim 才能发布；模型超时或输出不合法时保持 fail-closed。安全合成集可用
+以下命令复现实验：
+
+```bash
+.venv/bin/python scripts/evaluate_claim_verifier.py --mode deterministic
+.venv/bin/python scripts/evaluate_claim_verifier.py --mode semantic
+```
 
 Copy `.env.example` to `.env` when configuring a new checkout. Never commit
 `.env`; it is ignored by Git.

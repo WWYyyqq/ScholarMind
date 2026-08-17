@@ -1,0 +1,8 @@
+{"case_id":"cv-001-exact","claim":"The method improves accuracy by 12%.","evidence":["The method improves accuracy by 12%."],"expected":"supported"}
+{"case_id":"cv-002-paraphrase","claim":"The intervention lowered mortality.","evidence":["Fewer participants died after receiving the intervention."],"expected":"supported"}
+{"case_id":"cv-003-overstatement","claim":"The method improves accuracy by 12% on unseen external hospitals.","evidence":["The method improves accuracy by 12% on the internal test set."],"expected":"partial"}
+{"case_id":"cv-004-number","claim":"The method improves accuracy by 99%.","evidence":["The method improves accuracy by 12%."],"expected":"contradicted"}
+{"case_id":"cv-005-polarity","claim":"The intervention improves survival.","evidence":["The intervention does not improve survival."],"expected":"contradicted"}
+{"case_id":"cv-006-direction","claim":"Method A outperforms Method B.","evidence":["Method B outperforms Method A."],"expected":"contradicted"}
+{"case_id":"cv-007-unrelated","claim":"The model reduces inference latency.","evidence":["The paper evaluates segmentation accuracy on three datasets."],"expected":"insufficient"}
+{"case_id":"cv-008-multi-evidence","claim":"The study recruited 120 adults and followed them for 6 months.","evidence":["The study recruited 120 adults.","Participants were followed for 6 months."],"expected":"supported"}

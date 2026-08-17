@@ -42,6 +42,7 @@ def test_graph_returns_structured_pipeline_failure(monkeypatch) -> None:
         {
             "question": "  What changed?  ",
             "retrieval_mode": "dense",
+            "verification_mode": "semantic",
             "top_k": 3,
         }
     )
@@ -49,8 +50,10 @@ def test_graph_returns_structured_pipeline_failure(monkeypatch) -> None:
     assert service.questions == ["What changed?"]
     assert service.closed
     assert captured["retrieval_mode"] == "dense"
+    assert captured["verification_mode"] == "semantic"
     assert captured["top_k"] == 3
     assert output["status"] == "failed"
+    assert output["verification_mode"] == "semantic"
     assert output["publication_ready"] is False
     assert output["report"] is None
     assert output["errors"][0]["code"] == "pipeline_failed"

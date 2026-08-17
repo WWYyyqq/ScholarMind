@@ -12,6 +12,8 @@ PostgreSQL + pgvector（保存论文、证据和 1024 维向量）
 Qwen3-Embedding-0.6B + vLLM（生成向量并对候选重排）
                  ↑
 ScholarMind LangGraph Agent（检索、Claim 验证、Citation 和 HTTP API）
+                 ↑ 可选
+Qwen3-14B-AWQ + vLLM（Claim 语义蕴含判断）
 ```
 
 - **Qwen3-Embedding-0.6B** 是模型，负责把问题/证据变成向量，也通过 `/rerank`
@@ -20,8 +22,8 @@ ScholarMind LangGraph Agent（检索、Claim 验证、Citation 和 HTTP API）
 - **PostgreSQL/pgvector** 保存论文 Evidence 和向量；
 - **LangGraph** 编排检索、Claim 验证与 Citation，并暴露 `/runs/wait`。
 
-运行 `ScholarMind Researcher` 不需要同时启动 14B 生成模型。只有运行上游
-`Deep Researcher` 时才需要 `Qwen3-14B-AWQ` 的 8000 端口。
+默认的 `deterministic` 验证不需要 14B。运行上游 `Deep Researcher`，或把论文
+Agent 切换到 `semantic` 验证时，才需要 `Qwen3-14B-AWQ` 的 8000 端口。
 
 ## 2. 首次准备
 
@@ -72,6 +74,23 @@ set +a
 只有输出 `"status": "ready"` 才继续。该命令不会打印 DSN、密码、论文正文或
 模型分数，只报告服务状态、向量维度和索引数量。
 
+### 可选终端 B：启动并检查语义 Verifier
+
+```bash
+SCHOLARMIND_VLLM_ENV=/path/to/ScholarMind/services/local-llm/.venv \
+  ./services/local-llm/start.sh
+```
+
+另开终端设置项目变量并检查四个组件：
+
+```bash
+export SCHOLARMIND_VERIFICATION_MODE=semantic
+.venv/bin/python -m scholarmind.cli doctor --verification-mode semantic
+```
+
+此时 `doctor` 还会要求 Qwen 返回结构化同义蕴含结果和有效 Evidence 索引；仅有
+`/health` 成功不算通过。
+
 ### 终端 B：启动 ScholarMind Agent
 
 ```bash
@@ -111,6 +130,7 @@ set +a
 .venv/bin/python -m scholarmind.cli research \
   "你的论文研究问题" \
   --retrieval-mode hybrid-rerank \
+  --verification-mode semantic \
   --top-k 5
 ```
 
@@ -124,6 +144,7 @@ curl -sS http://127.0.0.1:2024/runs/wait \
     "input": {
       "question": "你的论文研究问题",
       "retrieval_mode": "hybrid-rerank",
+      "verification_mode": "semantic",
       "top_k": 5
     }
   }'
@@ -146,6 +167,8 @@ curl -sS http://127.0.0.1:2024/runs/wait \
 | `doctor` 的 database 失败 | 容器未运行、端口/密码不匹配或没有索引 | 检查 Docker 和 `.env.postgres` |
 | embedding 失败 | 8001 服务未启动或模型名不匹配 | 先启动 `local-embedding/start.sh` |
 | reranker 失败 | `/rerank` 不可用或语义排序异常 | 查看 vLLM 终端日志，不绕过检查 |
+| semantic_verifier 失败 | 8000 未启动、GPU 不可用或结构化输出失败 | 先运行本地 LLM smoke test；保持确定性模式可继续开发 |
+| WSL 报 `GPU access blocked` | Windows 显卡正常但当前 WSL VM 未挂载 `/dev/dxg` | 保存工作后执行 `wsl --shutdown` 再重开；这会中断所有 WSL 终端 |
 | LangGraph 首次启动约 20 秒 | 需要导入两个图和依赖 | 等待 `Application started up` |
 | API 返回 `failed` 且 `report=null` | 证据链未达到发布条件 | 查看结构化 `errors`，不要把它改成成功 |
 | 关闭时提示 `.langgraph_api/*.tmp` 不存在 | 同一工作树同时启动了多个 dev Server，争用本地持久化文件 | 每个工作树只运行一个 LangGraph dev Server |

@@ -12,6 +12,7 @@ import re
 from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass
 from enum import Enum
+from typing import Protocol
 
 from scholarmind.models import Claim, Evidence
 
@@ -74,11 +75,36 @@ class VerificationResult:
     explanation: str
     evidence_ids: tuple[str, ...] = ()
     coverage: float = 0.0
+    confidence: float = 0.0
+    verification_method: str = "deterministic"
+    hard_gate_passed: bool = True
+
+    def __post_init__(self) -> None:
+        """Keep invalid scores or unsupported citations out of API payloads."""
+        if not 0.0 <= self.coverage <= 1.0:
+            raise ValueError("verification coverage must be between 0 and 1")
+        if not 0.0 <= self.confidence <= 1.0:
+            raise ValueError("verification confidence must be between 0 and 1")
+        if self.status is VerificationStatus.SUPPORTED and not self.evidence_ids:
+            raise ValueError("supported verification requires evidence IDs")
+        if not self.verification_method.strip():
+            raise ValueError("verification method must not be empty")
 
     @property
     def allows_publication(self) -> bool:
         """Return whether this claim may enter a factual report."""
         return self.status is VerificationStatus.SUPPORTED
+
+
+class ClaimVerificationProvider(Protocol):
+    """Verify one claim against only its explicitly linked evidence."""
+
+    def verify(
+        self,
+        claim: Claim,
+        evidence: Iterable[Evidence] | Mapping[str, Evidence],
+    ) -> VerificationResult:
+        """Return an explainable, fail-closed publication verdict."""
 
 
 class ClaimVerifier:
@@ -115,6 +141,7 @@ class ClaimVerifier:
             return VerificationResult(
                 status=VerificationStatus.INSUFFICIENT,
                 explanation="Factual claim has no linked evidence.",
+                hard_gate_passed=False,
             )
 
         unresolved_ids = tuple(
@@ -127,6 +154,7 @@ class ClaimVerifier:
                     "Claim references unavailable evidence ID(s): "
                     + ", ".join(unresolved_ids)
                 ),
+                hard_gate_passed=False,
             )
 
         linked = [available[evidence_id] for evidence_id in linked_ids]
@@ -134,12 +162,17 @@ class ClaimVerifier:
             return VerificationResult(
                 status=VerificationStatus.INSUFFICIENT,
                 explanation="None of the claim's evidence IDs resolves to available evidence.",
+                hard_gate_passed=False,
             )
 
         evidence_text, supporting_evidence_id = _best_support_span(claim.text, linked)
         evidence_ids = (supporting_evidence_id,)
         claim_numbers = set(_NUMBER_RE.findall(claim.text))
-        evidence_numbers = set(_NUMBER_RE.findall(evidence_text))
+        evidence_numbers = {
+            number
+            for item in linked
+            for number in _NUMBER_RE.findall(item.text)
+        }
         missing_numbers = claim_numbers - evidence_numbers
         claim_tokens = _content_tokens(claim.text)
         evidence_tokens = _content_tokens(evidence_text)
@@ -161,6 +194,8 @@ class ClaimVerifier:
                 ),
                 evidence_ids=evidence_ids,
                 coverage=coverage,
+                confidence=coverage,
+                hard_gate_passed=False,
             )
 
         if coverage >= self.partial_threshold and _is_negated(
@@ -171,6 +206,8 @@ class ClaimVerifier:
                 explanation="Claim and linked evidence have conflicting polarity.",
                 evidence_ids=evidence_ids,
                 coverage=coverage,
+                confidence=coverage,
+                hard_gate_passed=False,
             )
 
         if coverage >= self.supported_threshold and _is_extractive_match(
@@ -184,6 +221,7 @@ class ClaimVerifier:
                 ),
                 evidence_ids=evidence_ids,
                 coverage=coverage,
+                confidence=coverage,
             )
         if coverage >= self.partial_threshold:
             return VerificationResult(
@@ -194,12 +232,14 @@ class ClaimVerifier:
                 ),
                 evidence_ids=evidence_ids,
                 coverage=coverage,
+                confidence=coverage,
             )
         return VerificationResult(
             status=VerificationStatus.INSUFFICIENT,
             explanation="Linked evidence does not cover enough material claim terms.",
             evidence_ids=evidence_ids,
             coverage=coverage,
+            confidence=coverage,
         )
 
     @staticmethod

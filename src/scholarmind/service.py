@@ -19,12 +19,23 @@ from scholarmind.retrieval import (
     SparseRetriever,
 )
 from scholarmind.storage import PostgresEvidenceRepository
+from scholarmind.verification import (
+    ClaimVerificationProvider,
+    ClaimVerifier,
+    OpenAISemanticEntailmentProvider,
+    SemanticClaimVerifier,
+)
 
 RetrievalMode = Literal["dense", "hybrid", "hybrid-rerank"]
 RETRIEVAL_MODES: tuple[RetrievalMode, ...] = (
     "dense",
     "hybrid",
     "hybrid-rerank",
+)
+VerificationMode = Literal["deterministic", "semantic"]
+VERIFICATION_MODES: tuple[VerificationMode, ...] = (
+    "deterministic",
+    "semantic",
 )
 
 
@@ -55,6 +66,27 @@ def build_embedder(runtime: EmbeddingRuntime) -> OpenAIEmbeddingProvider:
         base_url=runtime.base_url,
         api_key=runtime.api_key,
         query_instruction=runtime.query_instruction,
+    )
+
+
+def build_verifier(
+    settings: ScholarMindSettings,
+    *,
+    verification_mode: VerificationMode,
+) -> ClaimVerificationProvider:
+    """Build the selected fail-closed claim publication gate."""
+    if verification_mode not in VERIFICATION_MODES:
+        raise ValueError(f"unsupported verification mode: {verification_mode}")
+    if verification_mode == "deterministic":
+        return ClaimVerifier()
+    provider = OpenAISemanticEntailmentProvider(
+        model=settings.verifier_model,
+        base_url=settings.verifier_base_url,
+        api_key=settings.verifier_api_key,
+    )
+    return SemanticClaimVerifier(
+        provider,
+        minimum_confidence=settings.verifier_minimum_confidence,
     )
 
 
@@ -164,12 +196,16 @@ class ScholarMindResearchService:
         *,
         retrieval_mode: RetrievalMode,
         pipeline: RetrievalPipeline,
+        verification_mode: VerificationMode = "deterministic",
+        verifier: ClaimVerificationProvider | None = None,
     ) -> None:
         """Store owned resources; callers should use this as a context manager."""
         self.repository = repository
         self.researcher = researcher
         self.retrieval_mode = retrieval_mode
+        self.verification_mode = verification_mode
         self.pipeline = pipeline
+        self.verifier = verifier or getattr(researcher, "verifier", None)
         self._closed = False
 
     @classmethod
@@ -180,10 +216,14 @@ class ScholarMindResearchService:
         dsn: str | None = None,
         runtime: EmbeddingRuntime | None = None,
         retrieval_mode: RetrievalMode = "hybrid-rerank",
+        verification_mode: VerificationMode | None = None,
         top_k: int = 5,
     ) -> ScholarMindResearchService:
         """Connect PostgreSQL and compose the evidence-first research pipeline."""
         resolved_settings = settings or ScholarMindSettings.from_env()
+        resolved_verification_mode = (
+            verification_mode or resolved_settings.verification_mode
+        )
         resolved_dsn = (dsn or resolved_settings.postgres_dsn or "").strip()
         if not resolved_dsn:
             raise ValueError(
@@ -194,6 +234,7 @@ class ScholarMindResearchService:
 
         repository = PostgresEvidenceRepository.connect(resolved_dsn)
         pipeline: RetrievalPipeline | None = None
+        verifier: ClaimVerificationProvider | None = None
         try:
             resolved_runtime = runtime or EmbeddingRuntime.from_settings(
                 resolved_settings
@@ -207,21 +248,36 @@ class ScholarMindResearchService:
             sources = {
                 source.source_id: source for source in repository.list_sources()
             }
+            verifier = build_verifier(
+                resolved_settings,
+                verification_mode=resolved_verification_mode,
+            )
             researcher = FileResearcher(
                 pipeline.retriever,
+                verifier=verifier,
                 sources=sources,
                 top_k=top_k,
             )
         except Exception:
-            if pipeline is not None:
-                pipeline.close()
-            repository.close()
+            try:
+                if pipeline is not None:
+                    pipeline.close()
+            finally:
+                try:
+                    if verifier is not None:
+                        close = getattr(verifier, "close", None)
+                        if callable(close):
+                            close()
+                finally:
+                    repository.close()
             raise
         return cls(
             repository,
             researcher,
             retrieval_mode=retrieval_mode,
             pipeline=pipeline,
+            verification_mode=resolved_verification_mode,
+            verifier=verifier,
         )
 
     def research(self, question: str) -> FileResearchResult:
@@ -235,8 +291,15 @@ class ScholarMindResearchService:
         if self._closed:
             return
         self._closed = True
-        self.pipeline.close()
-        self.repository.close()
+        try:
+            self.pipeline.close()
+        finally:
+            try:
+                close = getattr(self.verifier, "close", None)
+                if callable(close):
+                    close()
+            finally:
+                self.repository.close()
 
     def __enter__(self) -> ScholarMindResearchService:
         """Return the open service."""
@@ -253,11 +316,13 @@ def research_result_payload(
     result: FileResearchResult,
     *,
     retrieval_mode: RetrievalMode,
+    verification_mode: VerificationMode = "deterministic",
 ) -> dict[str, Any]:
     """Serialize a research result without losing verifier diagnostics."""
     return {
         "question": result.question,
         "retrieval_mode": retrieval_mode,
+        "verification_mode": verification_mode,
         "status": result.status.value,
         "publication_ready": result.publication_ready,
         "report": result.report,

@@ -19,6 +19,14 @@
 ./services/local-llm/start.sh
 ```
 
+如果模型环境位于另一个 ScholarMind 工作树，可显式复用同一个项目专用环境，
+不会安装到系统 Python：
+
+```bash
+SCHOLARMIND_VLLM_ENV=/path/to/ScholarMind/services/local-llm/.venv \
+  ./services/local-llm/start.sh
+```
+
 首次冷启动通常需要数分钟。看到 `Application startup complete` 后，在另一个
 WSL 终端执行：
 
@@ -59,3 +67,16 @@ MAX_CONCURRENT_RESEARCH_UNITS=1
 
 `.env` 已被 Git 忽略。要切回云模型，只需移除 `OPENAI_BASE_URL`，填入真实
 API Key，并恢复所需的模型名称。
+
+ScholarMind 论文 Agent 默认仍使用确定性抽取式验证，不需要本服务。启用同义
+改写、关系方向和多证据语义判断时，再设置：
+
+```dotenv
+SCHOLARMIND_VERIFICATION_MODE=semantic
+SCHOLARMIND_VERIFIER_MODEL=qwen3-14b-local
+SCHOLARMIND_VERIFIER_BASE_URL=http://[::1]:8000/v1
+SCHOLARMIND_VERIFIER_MINIMUM_CONFIDENCE=0.75
+```
+
+数字、否定极性和 Evidence ID 仍由确定性硬门先检查；Qwen 无法覆盖这些失败。
+模型服务超时、不可用或返回非法 JSON 时，Claim 会拒绝发布而不是降级为成功。

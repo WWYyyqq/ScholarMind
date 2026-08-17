@@ -4,6 +4,7 @@ from typing import Any
 
 from scholarmind import health
 from scholarmind.service import EmbeddingRuntime
+from scholarmind.verification import SemanticVerdict, VerificationStatus
 
 
 def _runtime() -> EmbeddingRuntime:
@@ -42,6 +43,21 @@ class _Reranker:
     def score(self, _query: str, documents: Any) -> tuple[float, ...]:
         assert len(documents) == 2
         return 0.9, 0.1
+
+    def close(self) -> None:
+        self.closed = True
+
+
+class _SemanticProvider:
+    closed = False
+
+    def classify(self, _claim: str, _evidence: Any) -> SemanticVerdict:
+        return SemanticVerdict(
+            status=VerificationStatus.SUPPORTED,
+            confidence=0.95,
+            reason="The evidence entails the paraphrase.",
+            supporting_indices=(1,),
+        )
 
     def close(self) -> None:
         self.closed = True
@@ -111,3 +127,35 @@ def test_runtime_check_fails_closed_without_leaking_exception_message(
     assert all(
         check["status"] == "failed" for check in result["checks"].values()
     )
+
+
+def test_semantic_mode_requires_real_verifier_health(monkeypatch) -> None:
+    provider = _SemanticProvider()
+    monkeypatch.setattr(
+        health.PostgresEvidenceRepository,
+        "connect",
+        lambda _dsn: _Repository(),
+    )
+    monkeypatch.setattr(health, "build_embedder", lambda _runtime: _Embedder())
+    monkeypatch.setattr(
+        health,
+        "OpenAIRerankProvider",
+        lambda **_kwargs: _Reranker(),
+    )
+    monkeypatch.setattr(
+        health,
+        "OpenAISemanticEntailmentProvider",
+        lambda **_kwargs: provider,
+    )
+
+    result = health.check_runtime(
+        dsn="postgresql://fixture",
+        runtime=_runtime(),
+        expected_dimension=3,
+        verification_mode="semantic",
+        verifier_model="qwen3-test",
+    )
+
+    assert result["ready"] is True
+    assert result["checks"]["semantic_verifier"]["structured_output"] is True
+    assert provider.closed

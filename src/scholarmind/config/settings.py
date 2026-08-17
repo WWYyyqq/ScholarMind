@@ -5,6 +5,7 @@ from __future__ import annotations
 import os
 from collections.abc import Mapping
 from enum import Enum
+from typing import Literal
 
 from pydantic import Field, model_validator
 
@@ -34,6 +35,11 @@ class ScholarMindSettings(DomainModel):
     dense_weight: float = Field(default=1.0, gt=0.0)
     sparse_weight: float = Field(default=1.0, gt=0.0)
     rrf_k: int = Field(default=60, ge=1)
+    verification_mode: Literal["deterministic", "semantic"] = "deterministic"
+    verifier_model: str = "qwen3-14b-local"
+    verifier_base_url: str = "http://[::1]:8000/v1"
+    verifier_api_key: str = Field(default="local-not-required", repr=False)
+    verifier_minimum_confidence: float = Field(default=0.75, ge=0.0, le=1.0)
 
     @model_validator(mode="after")
     def postgres_requires_dsn(self) -> ScholarMindSettings:
@@ -63,6 +69,13 @@ class ScholarMindSettings(DomainModel):
             "SCHOLARMIND_DENSE_WEIGHT": "dense_weight",
             "SCHOLARMIND_SPARSE_WEIGHT": "sparse_weight",
             "SCHOLARMIND_RRF_K": "rrf_k",
+            "SCHOLARMIND_VERIFICATION_MODE": "verification_mode",
+            "SCHOLARMIND_VERIFIER_MODEL": "verifier_model",
+            "SCHOLARMIND_VERIFIER_BASE_URL": "verifier_base_url",
+            "SCHOLARMIND_VERIFIER_API_KEY": "verifier_api_key",
+            "SCHOLARMIND_VERIFIER_MINIMUM_CONFIDENCE": (
+                "verifier_minimum_confidence"
+            ),
         }
         for env_name, field_name in mapping.items():
             if env_name in values and values[env_name] != "":
