@@ -6,6 +6,7 @@ project_root="$(cd -- "${service_dir}/../.." && pwd)"
 venv_dir="${SCHOLARMIND_VLLM_ENV:-${service_dir}/.venv}"
 model_dir="${SCHOLARMIND_MODEL_DIR:-/mnt/d/ScholarMindLocalLLM/models/Qwen3-14B-AWQ-modelscope}"
 gpu_memory_utilization="${SCHOLARMIND_LLM_GPU_MEMORY_UTILIZATION:-0.75}"
+llm_tmpdir="${SCHOLARMIND_LLM_TMPDIR:-/tmp/scholarmind-llm-${UID}}"
 
 if [[ ! -x "${venv_dir}/bin/vllm" ]]; then
   echo "vLLM is not installed in ${venv_dir}." >&2
@@ -23,11 +24,11 @@ fi
 mkdir -p \
   "${project_root}/.cache/vllm" \
   "${service_dir}/.cache/flashinfer" \
-  "${service_dir}/tmp"
-chmod 700 "${service_dir}/tmp"
+  "${llm_tmpdir}"
+chmod 700 "${llm_tmpdir}"
 
 export PATH="${venv_dir}/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
-export TMPDIR="${service_dir}/tmp"
+export TMPDIR="${llm_tmpdir}"
 export VLLM_CACHE_ROOT="${project_root}/.cache/vllm"
 export FLASHINFER_WORKSPACE_BASE="${service_dir}"
 export VLLM_USE_V2_MODEL_RUNNER=0

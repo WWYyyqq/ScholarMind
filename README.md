@@ -229,6 +229,11 @@ Qwen3-14B 判断同义改写、关系方向与多段证据。只有达到置信�
 .venv/bin/python scripts/evaluate_claim_verifier.py --mode semantic
 ```
 
+在 8 条公开合成冒烟案例上，确定性模式为 62.50% accuracy / 100% publication
+precision / 33.33% publication recall；本机 Qwen3-14B-AWQ 语义模式实测为
+100% / 100% / 100%。该小集合用于覆盖硬门、同义改写、关系反转与多证据回归，
+不是论文 Gold 集，也不代表生产事实准确率；正式效果必须在人工复核 Gold 上报告。
+
 Copy `.env.example` to `.env` when configuring a new checkout. Never commit
 `.env`; it is ignored by Git.
 

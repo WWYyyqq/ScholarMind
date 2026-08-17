@@ -169,6 +169,7 @@ curl -sS http://127.0.0.1:2024/runs/wait \
 | reranker 失败 | `/rerank` 不可用或语义排序异常 | 查看 vLLM 终端日志，不绕过检查 |
 | semantic_verifier 失败 | 8000 未启动、GPU 不可用或结构化输出失败 | 先运行本地 LLM smoke test；保持确定性模式可继续开发 |
 | WSL 报 `GPU access blocked` | Windows 显卡正常但当前 WSL VM 未挂载 `/dev/dxg` | 保存工作后执行 `wsl --shutdown` 再重开；这会中断所有 WSL 终端 |
+| vLLM 报 `ipc path ... longer than 107 characters` | worktree 路径太长，ZeroMQ Socket 无法创建 | 使用新版启动脚本的短 `/tmp` 目录，或设置 `SCHOLARMIND_LLM_TMPDIR=/tmp/scholarmind-llm` |
 | LangGraph 首次启动约 20 秒 | 需要导入两个图和依赖 | 等待 `Application started up` |
 | API 返回 `failed` 且 `report=null` | 证据链未达到发布条件 | 查看结构化 `errors`，不要把它改成成功 |
 | 关闭时提示 `.langgraph_api/*.tmp` 不存在 | 同一工作树同时启动了多个 dev Server，争用本地持久化文件 | 每个工作树只运行一个 LangGraph dev Server |

@@ -162,4 +162,9 @@ def test_openai_provider_requests_and_parses_strict_json_schema() -> None:
     assert verdict.status is VerificationStatus.CONTRADICTED
     assert verdict.supporting_indices == (1,)
     assert completions.kwargs["temperature"] == 0
+    assert completions.kwargs["max_tokens"] == 128
     assert completions.kwargs["response_format"]["type"] == "json_schema"
+    indices_schema = completions.kwargs["response_format"]["json_schema"][
+        "schema"
+    ]["properties"]["supporting_indices"]
+    assert "uniqueItems" not in indices_schema

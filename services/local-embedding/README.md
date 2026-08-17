@@ -60,7 +60,9 @@ stderr，最终摘要写到 stdout。该进度文件只保存数量、ID、模�
 - `--fail-fast`：遇到首个数据错误就停止；默认隔离单条坏数据并继续；
 - `--progress-file PATH`：覆盖默认 JSONL 进度文件位置。
 
-生成模型与Embedding模型并行运行时，默认GPU显存配额分别为0.75和0.15。
+生成模型与 Embedding 模型并行运行时，默认 GPU 显存配额分别为 0.75 和
+0.18。0.18 是 vLLM 0.26 在 4096 最大长度、CUDA Graph memory profiling
+开启时通过真实并行启动验证的最低安全档位；两项合计 0.93，仍保留约 7% 余量。
 如需单独运行服务，可分别使用SCHOLARMIND_LLM_GPU_MEMORY_UTILIZATION和
 SCHOLARMIND_EMBEDDING_GPU_MEMORY_UTILIZATION调整，但两者总和必须为GPU和
 CUDA运行时保留余量。
