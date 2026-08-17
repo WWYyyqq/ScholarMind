@@ -11,6 +11,7 @@ from typing import Any, Protocol
 from scholarmind.models import Citation, Claim, ClaimStatus, Evidence, Source
 from scholarmind.retrieval import Retriever, SearchResult
 from scholarmind.verification import (
+    ClaimVerificationProvider,
     ClaimVerifier,
     VerificationResult,
     VerificationStatus,
@@ -155,7 +156,7 @@ class FileResearcher:
         retriever: Retriever,
         *,
         claim_generator: ClaimGenerator | None = None,
-        verifier: ClaimVerifier | None = None,
+        verifier: ClaimVerificationProvider | None = None,
         sources: Mapping[str, Source] | None = None,
         top_k: int = 5,
     ) -> None:
@@ -461,6 +462,8 @@ def _failed_verification(
         explanation=explanation,
         evidence_ids=evidence_ids,
         coverage=coverage,
+        confidence=coverage,
+        hard_gate_passed=False,
     )
 
 
@@ -478,6 +481,9 @@ def _verified_claim(claim: Claim, result: VerificationResult) -> Claim:
             "status": result.status.value,
             "explanation": result.explanation,
             "coverage": result.coverage,
+            "confidence": result.confidence,
+            "method": result.verification_method,
+            "hard_gate_passed": result.hard_gate_passed,
         },
     }
     return Claim.model_validate(
@@ -487,7 +493,7 @@ def _verified_claim(claim: Claim, result: VerificationResult) -> Claim:
                 result.evidence_ids if result.allows_publication else claim.evidence_ids
             ),
             "status": result.status.value,
-            "confidence": result.coverage,
+            "confidence": result.confidence,
             "metadata": metadata,
         }
     )

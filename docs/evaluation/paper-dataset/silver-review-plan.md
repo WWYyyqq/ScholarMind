@@ -38,6 +38,17 @@
 - [ ] 从公开模板复制 Review/Gold 空模板，不直接修改模板文件；
 - [ ] 确认采用 `single_reviewer_interval_recheck`；若有第二位标注者，改用独立双人协议。
 
+以上冻结、数量校验、稳定 ID 和空记录可由仓库工具一次生成：
+
+```bash
+.venv/bin/python scripts/prepare_silver_review.py \
+  --dataset "<DATASET_OUTPUT>" \
+  --output "<ANNOTATION_ROOT>/paper-eval-v1"
+```
+
+命令在目标存在时拒绝覆盖，避免误删已经填写的人工结论。生成后仍必须由人打开
+PDF 完成两轮判断；Qwen 不是第二位标注者。
+
 建议的私有目录如下：
 
 ```text

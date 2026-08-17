@@ -10,8 +10,10 @@ from typing_extensions import TypedDict
 from scholarmind.config import ScholarMindSettings
 from scholarmind.service import (
     RETRIEVAL_MODES,
+    VERIFICATION_MODES,
     RetrievalMode,
     ScholarMindResearchService,
+    VerificationMode,
     research_result_payload,
 )
 
@@ -30,6 +32,7 @@ class ScholarMindAgentState(TypedDict, total=False):
 
     question: str
     retrieval_mode: RetrievalMode
+    verification_mode: VerificationMode
     top_k: int
     status: Literal["success", "partial", "failed"]
     publication_ready: bool
@@ -46,12 +49,14 @@ def create_research_service(
     *,
     settings: ScholarMindSettings,
     retrieval_mode: RetrievalMode,
+    verification_mode: VerificationMode,
     top_k: int,
 ) -> ScholarMindResearchService:
     """Create the production service behind an injectable graph boundary."""
     return ScholarMindResearchService.connect(
         settings=settings,
         retrieval_mode=retrieval_mode,
+        verification_mode=verification_mode,
         top_k=top_k,
     )
 
@@ -59,11 +64,14 @@ def create_research_service(
 def run_file_research(state: ScholarMindAgentState) -> ScholarMindAgentState:
     """Run local research and always return an explicit structured status."""
     try:
-        question, retrieval_mode, top_k = _request_from_state(state)
+        question, retrieval_mode, verification_mode, top_k = _request_from_state(
+            state
+        )
         settings = ScholarMindSettings.from_env()
         with create_research_service(
             settings=settings,
             retrieval_mode=retrieval_mode,
+            verification_mode=verification_mode,
             top_k=top_k,
         ) as service:
             result = service.research(question)
@@ -84,7 +92,11 @@ def run_file_research(state: ScholarMindAgentState) -> ScholarMindAgentState:
             recoverable=True,
         )
 
-    payload = research_result_payload(result, retrieval_mode=retrieval_mode)
+    payload = research_result_payload(
+        result,
+        retrieval_mode=retrieval_mode,
+        verification_mode=verification_mode,
+    )
     errors: list[AgentError] = [
         {
             "stage": "research",
@@ -111,7 +123,7 @@ def run_file_research(state: ScholarMindAgentState) -> ScholarMindAgentState:
 
 def _request_from_state(
     state: ScholarMindAgentState,
-) -> tuple[str, RetrievalMode, int]:
+) -> tuple[str, RetrievalMode, VerificationMode, int]:
     """Validate the small public request contract before opening resources."""
     raw_question = state.get("question")
     if not isinstance(raw_question, str) or not raw_question.strip():
@@ -125,12 +137,19 @@ def _request_from_state(
         )
     retrieval_mode = cast(RetrievalMode, raw_mode)
 
+    raw_verification_mode = state.get("verification_mode", "deterministic")
+    if raw_verification_mode not in VERIFICATION_MODES:
+        raise ValueError(
+            "verification_mode must be deterministic or semantic"
+        )
+    verification_mode = cast(VerificationMode, raw_verification_mode)
+
     raw_top_k = state.get("top_k", 5)
     if isinstance(raw_top_k, bool) or not isinstance(raw_top_k, int):
         raise TypeError("top_k must be an integer")
     if raw_top_k < 1 or raw_top_k > 100:
         raise ValueError("top_k must be between 1 and 100")
-    return question, retrieval_mode, raw_top_k
+    return question, retrieval_mode, verification_mode, raw_top_k
 
 
 def _failure(
@@ -149,6 +168,12 @@ def _failure(
         if raw_mode in RETRIEVAL_MODES
         else "hybrid-rerank"
     )
+    raw_verification_mode = state.get("verification_mode", "deterministic")
+    verification_mode = (
+        cast(VerificationMode, raw_verification_mode)
+        if raw_verification_mode in VERIFICATION_MODES
+        else "deterministic"
+    )
     raw_top_k = state.get("top_k", 5)
     top_k = (
         raw_top_k
@@ -160,6 +185,7 @@ def _failure(
     return {
         "question": question.strip() if isinstance(question, str) else "",
         "retrieval_mode": retrieval_mode,
+        "verification_mode": verification_mode,
         "top_k": top_k,
         "status": "failed",
         "publication_ready": False,

@@ -12,12 +12,33 @@
 - `results/`：Runner 逐条追加的原始 JSONL；
 - `labels/`：Day 4 人工事实与引用标注。
 - [`docs/evaluation/paper-dataset/templates/`](../docs/evaluation/paper-dataset/templates/)：论文 Silver → Gold 标注所用的公开空模板。
+- `claim-verifier/cases.synthetic.jsonl`：不含私有论文内容的 8 个 Claim–Evidence
+  语义验证回归案例。
 
 ## 论文 Silver → Gold 标注
 
 程序生成的论文问题只是 Silver 候选，必须人工查阅 PDF、复核问题/答案/证据并处理冲突后，才能形成 Gold。字段与判定规则见 [Silver → Gold 人工标注手册](../docs/evaluation/paper-dataset/silver-to-gold.md)，42 道题的每日工作量见 [七天人工复核执行计划](../docs/evaluation/paper-dataset/silver-review-plan.md)。
 
 公开仓库只保存规范和虚构模板；真实论文内容、逐题审阅记录及 Gold 数据保存在本地私有目录。
+
+找到原始数据集输出目录后，可一次性冻结输入并创建两轮盲审工作区：
+
+```bash
+.venv/bin/python scripts/prepare_silver_review.py \
+  --dataset "<DATASET_OUTPUT>" \
+  --output "<ANNOTATION_ROOT>/paper-eval-v1"
+```
+
+脚本严格要求当前 42 题版本（19 摘要题、23 方法题），记录所有证据输入哈希，
+生成 5/12/13/12 批次、两轮 ID-only 队列和 42 个空 Review 记录。输出目录已存在
+时会拒绝覆盖；它不会修改 Silver、PDF 或解析语料。
+
+Claim Verifier 的可重复合成评测：
+
+```bash
+.venv/bin/python scripts/evaluate_claim_verifier.py --mode deterministic
+.venv/bin/python scripts/evaluate_claim_verifier.py --mode semantic
+```
 
 ## 运行
 

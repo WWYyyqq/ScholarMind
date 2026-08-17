@@ -183,9 +183,12 @@ question
 检查 Evidence ID，再检查数字、否定极性和词项覆盖；最终判为 `supported` 还必须
 满足：Claim 经空白规范化后可从某条已链接 Evidence 句子中严格抽取。
 
-因此 `A outperforms B` 与证据 `B outperforms A` 即使词集合完全相同，也不能进入
-报告。这个保守门会拒绝合理的同义改写；在语义/NLI 验证器上线前，这是有意的
-安全边界。
+因此 `A outperforms B` 与证据 `B outperforms A` 即使词集合完全相同，也不能由
+抽取式门直接进入报告。`verification_mode=semantic` 会仅对硬门通过、但词面无法
+定论的 Claim 调用 Qwen3-14B：模型必须返回受 JSON Schema 约束的标签、置信度和
+1-based Evidence 索引。数字冲突、极性冲突、缺失 Evidence ID 不能被模型覆盖；
+模型异常或低于阈值时继续拒绝发布。默认仍为 `deterministic`，保证 CI 与无 GPU
+环境可重复运行。
 
 畸形检索项、某个 Claim 校验异常、Verifier 异常或 Citation 异常只影响对应项：
 
@@ -206,7 +209,7 @@ question
 `src/scholarmind/graph.py` 在这个服务之上暴露单节点 LangGraph：
 
 ```text
-{question, retrieval_mode, top_k}
+{question, retrieval_mode, verification_mode, top_k}
                   │
                   ▼
        ScholarMind Research Service
@@ -319,14 +322,16 @@ GitHub Actions 在每次 PR 及 main push 时执行：
 
 已实现的是可测试的证据流水线基础，不是完整产品：
 
-- Web/Baseline Writer 已有哈希与调用来源门，但尚未接入 Claim 级语义后验验证；
+- Web/Baseline Writer 已有哈希与调用来源门，但本次 Claim 级语义验证只接入
+  ScholarMind File Researcher，尚未接入上游 Web Writer；
 - File Researcher 已连接独立的 ScholarMind LangGraph 与 HTTP API，但尚未路由进
   上游 Web Supervisor，也没有证据查看界面；
 - 本地论文链路已接入 Qwen Dense、BM25、RRF、质量过滤和 Qwen Rerank，但当前
   指标来自待人工复核 Silver 标签；Gold 数据集与正式消融尚未完成，pgvector
   生产索引参数也尚未冻结；
 - PostgreSQL 目前使用幂等 schema，尚未引入 Alembic 升降级；
-- 正式 Review/Gold schema、构建器和验证器仍是 Silver 人工复核阶段的后续工具；
+- Silver 冻结与双轮队列生成器已完成；正式 Review/Gold schema、最终构建器和
+  验证器仍是人工复核阶段的后续工具；
 - 本地数据库需用户先安装/启用 Docker Desktop 的 WSL 集成。
 
 这些边界必须保留在简历和演示说明中。可以说“实现了证据模型、混合检索、

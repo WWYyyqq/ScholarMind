@@ -3,7 +3,7 @@ set -euo pipefail
 
 service_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 project_root="$(cd -- "${service_dir}/../.." && pwd)"
-venv_dir="${service_dir}/.venv"
+venv_dir="${SCHOLARMIND_VLLM_ENV:-${service_dir}/.venv}"
 model_dir="${SCHOLARMIND_MODEL_DIR:-/mnt/d/ScholarMindLocalLLM/models/Qwen3-14B-AWQ-modelscope}"
 gpu_memory_utilization="${SCHOLARMIND_LLM_GPU_MEMORY_UTILIZATION:-0.75}"
 

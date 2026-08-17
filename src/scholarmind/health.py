@@ -6,8 +6,12 @@ import math
 from typing import Any
 
 from scholarmind.retrieval import OpenAIRerankProvider
-from scholarmind.service import EmbeddingRuntime, build_embedder
+from scholarmind.service import EmbeddingRuntime, VerificationMode, build_embedder
 from scholarmind.storage import PostgresEvidenceRepository
+from scholarmind.verification import (
+    OpenAISemanticEntailmentProvider,
+    VerificationStatus,
+)
 
 
 def check_runtime(
@@ -15,18 +19,30 @@ def check_runtime(
     dsn: str,
     runtime: EmbeddingRuntime,
     expected_dimension: int,
+    verification_mode: VerificationMode = "deterministic",
+    verifier_model: str = "qwen3-14b-local",
+    verifier_base_url: str = "http://[::1]:8000/v1",
+    verifier_api_key: str = "local-not-required",
 ) -> dict[str, Any]:
     """Check PostgreSQL, embeddings, and reranking without exposing secrets."""
     if not dsn.strip():
         raise ValueError("dsn must not be empty")
     if expected_dimension < 1:
         raise ValueError("expected_dimension must be positive")
+    if verification_mode not in {"deterministic", "semantic"}:
+        raise ValueError("unsupported verification mode")
 
     checks = {
         "database": _check_database(dsn, model=runtime.model),
         "embedding": _check_embedding(runtime, expected_dimension),
         "reranker": _check_reranker(runtime),
     }
+    if verification_mode == "semantic":
+        checks["semantic_verifier"] = _check_semantic_verifier(
+            model=verifier_model,
+            base_url=verifier_base_url,
+            api_key=verifier_api_key,
+        )
     ready = all(check["status"] == "ok" for check in checks.values())
     return {
         "status": "ready" if ready else "unavailable",
@@ -102,6 +118,40 @@ def _check_reranker(runtime: EmbeddingRuntime) -> dict[str, Any]:
         return _failure("reranker_service_unavailable", exc)
     finally:
         _close_quietly(reranker)
+
+
+def _check_semantic_verifier(
+    *,
+    model: str,
+    base_url: str,
+    api_key: str,
+) -> dict[str, Any]:
+    """Require a real structured paraphrase verdict from the configured model."""
+    provider = None
+    try:
+        provider = OpenAISemanticEntailmentProvider(
+            model=model,
+            base_url=base_url,
+            api_key=api_key,
+        )
+        verdict = provider.classify(
+            "The intervention lowered mortality.",
+            ("Fewer participants died after receiving the intervention.",),
+        )
+        if verdict.status is not VerificationStatus.SUPPORTED:
+            raise RuntimeError("semantic verifier failed the entailment check")
+        if verdict.supporting_indices != (1,):
+            raise RuntimeError("semantic verifier returned invalid evidence links")
+        return {
+            "status": "ok",
+            "model": model,
+            "structured_output": True,
+            "evidence_links_valid": True,
+        }
+    except Exception as exc:
+        return _failure("semantic_verifier_unavailable", exc)
+    finally:
+        _close_quietly(provider)
 
 
 def _failure(code: str, exc: Exception) -> dict[str, str]:

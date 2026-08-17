@@ -33,6 +33,7 @@ from scholarmind.service import (
     RetrievalMode,
     RetrievalPipeline,
     ScholarMindResearchService,
+    VerificationMode,
     build_embedder,
     build_retriever,
     research_result_payload,
@@ -158,6 +159,15 @@ def _build_parser() -> argparse.ArgumentParser:
     )
     _add_retrieval_arguments(research_parser)
     research_parser.add_argument(
+        "--verification-mode",
+        choices=("deterministic", "semantic"),
+        help=(
+            "Claim gate: strict extractive rules, or Qwen semantic judgment "
+            "behind the same numeric/polarity hard gates. Defaults to "
+            "SCHOLARMIND_VERIFICATION_MODE or deterministic."
+        ),
+    )
+    research_parser.add_argument(
         "--format",
         choices=("markdown", "json"),
         default="markdown",
@@ -175,6 +185,14 @@ def _build_parser() -> argparse.ArgumentParser:
         type=_positive_int,
         default=DEFAULT_EMBEDDING_DIMENSION,
         help="Expected embedding width (default: 1024).",
+    )
+    doctor_parser.add_argument(
+        "--verification-mode",
+        choices=("deterministic", "semantic"),
+        help=(
+            "Also check the Qwen semantic verifier when set to semantic. "
+            "Defaults to SCHOLARMIND_VERIFICATION_MODE."
+        ),
     )
     _add_runtime_arguments(doctor_parser)
     doctor_parser.set_defaults(handler=_run_doctor)
@@ -467,27 +485,43 @@ def _run_search(args: argparse.Namespace) -> int:
 
 
 def _research_payload(
-    result: FileResearchResult, *, retrieval_mode: RetrievalMode
+    result: FileResearchResult,
+    *,
+    retrieval_mode: RetrievalMode,
+    verification_mode: VerificationMode,
 ) -> dict[str, Any]:
-    payload = research_result_payload(result, retrieval_mode=retrieval_mode)
+    payload = research_result_payload(
+        result,
+        retrieval_mode=retrieval_mode,
+        verification_mode=verification_mode,
+    )
     return {"command": "research", **payload}
 
 
 def _run_research(args: argparse.Namespace) -> int:
     runtime = _runtime(args)
+    settings = ScholarMindSettings.from_env()
+    verification_mode: VerificationMode = (
+        args.verification_mode or settings.verification_mode
+    )
     with ScholarMindResearchService.connect(
-            settings=ScholarMindSettings.from_env(),
-            dsn=_dsn(args),
-            runtime=runtime,
-            retrieval_mode=args.retrieval_mode,
-            top_k=args.top_k,
+        settings=settings,
+        dsn=_dsn(args),
+        runtime=runtime,
+        retrieval_mode=args.retrieval_mode,
+        verification_mode=verification_mode,
+        top_k=args.top_k,
     ) as service:
         result = service.research(args.question)
 
     if args.format == "json":
         print(
             json.dumps(
-                _research_payload(result, retrieval_mode=args.retrieval_mode),
+                _research_payload(
+                    result,
+                    retrieval_mode=args.retrieval_mode,
+                    verification_mode=verification_mode,
+                ),
                 ensure_ascii=False,
                 indent=2,
             )
@@ -501,7 +535,11 @@ def _run_research(args: argparse.Namespace) -> int:
     else:
         print(
             json.dumps(
-                _research_payload(result, retrieval_mode=args.retrieval_mode),
+                _research_payload(
+                    result,
+                    retrieval_mode=args.retrieval_mode,
+                    verification_mode=verification_mode,
+                ),
                 ensure_ascii=False,
                 indent=2,
             ),
@@ -511,12 +549,20 @@ def _run_research(args: argparse.Namespace) -> int:
 
 
 def _run_doctor(args: argparse.Namespace) -> int:
+    settings = ScholarMindSettings.from_env()
+    verification_mode: VerificationMode = (
+        args.verification_mode or settings.verification_mode
+    )
     payload = {
         "command": "doctor",
         **check_runtime(
             dsn=_dsn(args),
             runtime=_runtime(args),
             expected_dimension=args.embedding_dimension,
+            verification_mode=verification_mode,
+            verifier_model=settings.verifier_model,
+            verifier_base_url=settings.verifier_base_url,
+            verifier_api_key=settings.verifier_api_key,
         ),
     }
     print(json.dumps(payload, ensure_ascii=False, indent=2))

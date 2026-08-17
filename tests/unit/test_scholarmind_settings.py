@@ -47,6 +47,25 @@ def test_settings_load_local_embedding_endpoint() -> None:
     assert settings.embedding_query_instruction == "retrieve papers"
 
 
+def test_settings_load_project_scoped_semantic_verifier() -> None:
+    settings = ScholarMindSettings.from_env(
+        {
+            "OPENAI_BASE_URL": "must-be-ignored",
+            "SCHOLARMIND_VERIFICATION_MODE": "semantic",
+            "SCHOLARMIND_VERIFIER_MODEL": "qwen3-verifier",
+            "SCHOLARMIND_VERIFIER_BASE_URL": "http://127.0.0.1:8000/v1",
+            "SCHOLARMIND_VERIFIER_API_KEY": "test-key",
+            "SCHOLARMIND_VERIFIER_MINIMUM_CONFIDENCE": "0.8",
+        }
+    )
+
+    assert settings.verification_mode == "semantic"
+    assert settings.verifier_model == "qwen3-verifier"
+    assert settings.verifier_base_url == "http://127.0.0.1:8000/v1"
+    assert settings.verifier_api_key == "test-key"
+    assert settings.verifier_minimum_confidence == 0.8
+
+
 def test_postgres_backend_requires_project_dsn() -> None:
     with pytest.raises(ValidationError, match="SCHOLARMIND_POSTGRES_DSN"):
         ScholarMindSettings.from_env({"SCHOLARMIND_STORAGE_BACKEND": "postgres"})
