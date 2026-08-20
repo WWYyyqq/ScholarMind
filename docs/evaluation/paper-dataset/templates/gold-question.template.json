@@ -1,7 +1,7 @@
 {
   "template_notice": "公开教学用空模板；null 表示尚未填写或当前状态不适用。它不是当前 Silver schema 的有效记录，真实 Gold 禁止提交到公开仓库。",
-  "schema_version": "draft-1",
-  "annotation_spec_version": "1.0-draft",
+  "schema_version": "1.0.0",
+  "annotation_spec_version": "1.0",
   "gold_version": null,
   "gold_question_id": null,
   "source_question_id": null,

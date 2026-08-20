@@ -1,7 +1,7 @@
 {
   "template_notice": "公开教学用空模板；null 表示尚未填写或当前状态不适用。请复制到本地私有目录并按手册填写，真实记录禁止提交到公开仓库。",
-  "schema_version": "draft-1",
-  "annotation_spec_version": "1.0-draft",
+  "schema_version": "1.0.0",
+  "annotation_spec_version": "1.0",
   "annotation_record_id": null,
   "record_status": "draft",
   "source": {

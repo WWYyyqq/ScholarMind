@@ -67,6 +67,10 @@
 
 逐题操作步骤、判定标准、错误代码、复核协议和公开空模板见 [Silver → Gold 人工标注手册](silver-to-gold.md)；实际工作量与七天批次见 [42 道 Silver 问题人工复核执行计划](silver-review-plan.md)。
 
+人工完成两轮复核和必要裁决后，`scripts/build_gold_dataset.py` 会验证冻结哈希、
+Review/Silver/Document 跨文件引用和复核协议，从解析文本块重新计算页码与两种
+bbox，并确定性导出私有 Gold。构建器不会调用模型，也不会把论文正文打印到汇总。
+
 ## 生成物
 
 | 路径 | 内容 |

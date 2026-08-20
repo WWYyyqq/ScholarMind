@@ -197,6 +197,12 @@ def main(argv: list[str] | None = None) -> int:
         questions_path,
         args.schemas.expanduser().resolve() / "paper_eval_question.schema.json",
     )
+    review_schema = json.loads(
+        (
+            args.schemas.expanduser().resolve() / "paper_review.schema.json"
+        ).read_text(encoding="utf-8")
+    )
+    review_validator = Draft202012Validator(review_schema)
     template = json.loads(args.template.expanduser().resolve().read_text(encoding="utf-8"))
     batches = _batches(questions)
     batch_by_question = {
@@ -249,6 +255,12 @@ def main(argv: list[str] | None = None) -> int:
             "source_checksums_file_sha256": checksums_sha,
         }
         record["review_protocol"] = args.protocol
+        errors = list(review_validator.iter_errors(record))
+        if errors:
+            raise ValueError(
+                "generated review record violates paper_review.schema.json: "
+                f"{errors[0].message}"
+            )
         _write_json(records / f"{record['annotation_record_id']}.json", record)
 
     now = datetime.now(UTC).isoformat()
@@ -257,7 +269,7 @@ def main(argv: list[str] | None = None) -> int:
         "dataset_release": args.release,
         "created_at_utc": now,
         "scholarmind_git_commit": _git_commit(),
-        "annotation_spec_version": "1.0-draft",
+        "annotation_spec_version": "1.0",
         "review_protocol": args.protocol,
         "reviewer_alias": args.reviewer_alias,
         "questions_silver_file_sha256": silver_sha,

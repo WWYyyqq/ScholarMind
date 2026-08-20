@@ -33,6 +33,21 @@
 生成 5/12/13/12 批次、两轮 ID-only 队列和 42 个空 Review 记录。输出目录已存在
 时会拒绝覆盖；它不会修改 Silver、PDF 或解析语料。
 
+两轮人工复核与冲突裁决完成后构建 Gold：
+
+```bash
+.venv/bin/python scripts/build_gold_dataset.py \
+  --dataset "<DATASET_OUTPUT>" \
+  --workspace "<ANNOTATION_ROOT>/paper-eval-v1" \
+  --gold-version paper-gold-v1
+```
+
+构建器使用正式 Review/Gold Schema，逐项核对冻结 SHA-256、ID、来源、两轮协议和
+最终 resolution。`edit` 的页码、block 顺序、PDF bbox 与归一化 bbox 从
+`documents/*.json` 重算；`answer` 不等于选中原文、存在未裁决记录或来源被修改时
+立即停止且不生成新聚合文件。已有生成文件默认拒绝覆盖；仅在明确重建时使用
+`--replace-generated`。真实 Review 与 Gold 始终保存在仓库外。
+
 Claim Verifier 的可重复合成评测：
 
 ```bash

@@ -14,5 +14,7 @@
 - [42 道 Silver 问题七天人工复核计划](paper-dataset/silver-review-plan.md)
 - [人工复核记录空模板](paper-dataset/templates/review-record.template.json)
 - [Gold 问题空模板](paper-dataset/templates/gold-question.template.json)
+- [正式 Review Schema](../../evaluation/schemas/paper_review.schema.json)
+- [正式 Gold Schema](../../evaluation/schemas/paper_gold_question.schema.json)
 
 真实 PDF、解析语料、逐题 Review 和 Gold 数据均不得提交到公开仓库。

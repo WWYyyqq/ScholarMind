@@ -103,8 +103,8 @@ GraphRAG、Kubernetes、多租户、第二个本地模型等功能不进入 `v0.
 | 2 | Day 8 · 8/6 | 混合检索、质量门与 Qwen Rerank | ✅ 已加速完成 |
 | 2 | Day 9 · 8/15 | 接入 ScholarMind Agent 与 LangGraph API | ✅ 已加速完成 |
 | 2 | Day 10 · 8/16 | 真实 API 闭环、准确性加固与运行自检 | ✅ 已加速完成 |
-| 2 | Day 11 · 8/9 | 模型测试与 Fixture | 计划 |
-| 2 | Day 12 · 8/10 | PostgreSQL 与 pgvector | 计划 |
+| 2 | Day 11 · 8/17 | 语义证据验证与真实 Qwen 全栈验收 | ✅ 完成，待合并运行验收分支 |
+| 2 | Day 12 · 8/20 | 正式 Review/Gold Schema 与确定性 Gold 构建器 | ✅ 本地实现与回归完成，待 CI |
 | 2 | Day 13 · 8/11 | 网页来源注册与快照 | 计划 |
 | 2 | Day 14 · 8/12 | 网页 Evidence 闭环 | 计划 |
 | 3 | Day 15 · 8/13 | 安全文件上传 | 计划 |

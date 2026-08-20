@@ -1,0 +1,316 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "paper_review.schema.json",
+  "title": "ScholarMind human review record",
+  "description": "A two-round human review and final resolution for one frozen Silver question.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "annotation_spec_version",
+    "annotation_record_id",
+    "record_status",
+    "source",
+    "review_protocol",
+    "reviews",
+    "resolution",
+    "gold_export"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "annotation_spec_version": {"const": "1.0"},
+    "annotation_record_id": {"$ref": "#/$defs/annotationId"},
+    "record_status": {
+      "enum": [
+        "draft",
+        "round_1_complete",
+        "round_2_complete",
+        "pending_adjudication",
+        "resolved"
+      ]
+    },
+    "source": {"$ref": "#/$defs/source"},
+    "review_protocol": {
+      "anyOf": [
+        {"enum": ["single_reviewer_interval_recheck", "independent_two_reviewer"]},
+        {"type": "null"}
+      ]
+    },
+    "reviews": {
+      "type": "object",
+      "required": ["round_1", "round_2"],
+      "properties": {
+        "round_1": {"$ref": "#/$defs/reviewRound"},
+        "round_2": {"$ref": "#/$defs/reviewRound"}
+      },
+      "additionalProperties": false
+    },
+    "resolution": {"$ref": "#/$defs/resolution"},
+    "gold_export": {"$ref": "#/$defs/goldExport"}
+  },
+  "$defs": {
+    "nullableString": {
+      "anyOf": [{"type": "string", "minLength": 1}, {"type": "null"}]
+    },
+    "nullableTimestamp": {
+      "anyOf": [{"type": "string", "format": "date-time"}, {"type": "null"}]
+    },
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "questionId": {"type": "string", "pattern": "^eval-[0-9a-f]{16}$"},
+    "paperId": {"type": "string", "pattern": "^paper-[0-9a-f]{16}$"},
+    "workId": {"type": "string", "pattern": "^work-[0-9a-f]{16}$"},
+    "annotationId": {
+      "type": "string",
+      "pattern": "^annotation-[0-9a-f]{16}$"
+    },
+    "goldId": {"type": "string", "pattern": "^gold-[0-9a-f]{16}$"},
+    "questionType": {
+      "enum": ["abstract_evidence", "method_section_locator"]
+    },
+    "issueCode": {
+      "enum": [
+        "NOT_ABSTRACT",
+        "WRONG_SECTION",
+        "WRONG_ANSWER",
+        "WRONG_EVIDENCE",
+        "WRONG_PAGE",
+        "EVIDENCE_NOT_EXTRACTIVE",
+        "INCOMPLETE_CONTEXT",
+        "LAYOUT_NOISE",
+        "HYPHENATION",
+        "OCR_ERROR",
+        "QUESTION_NOT_NATURAL",
+        "AMBIGUOUS_QUESTION",
+        "MULTIPLE_VALID_ANSWERS",
+        "NOT_APPLICABLE",
+        "DUPLICATE_QUESTION",
+        "LEAKAGE_RISK",
+        "OTHER"
+      ]
+    },
+    "bbox": {
+      "type": "array",
+      "prefixItems": [
+        {"type": "number"},
+        {"type": "number"},
+        {"type": "number"},
+        {"type": "number"}
+      ],
+      "minItems": 4,
+      "maxItems": 4,
+      "items": false
+    },
+    "normalizedBbox": {
+      "type": "array",
+      "prefixItems": [
+        {"type": "number", "minimum": 0, "maximum": 1},
+        {"type": "number", "minimum": 0, "maximum": 1},
+        {"type": "number", "minimum": 0, "maximum": 1},
+        {"type": "number", "minimum": 0, "maximum": 1}
+      ],
+      "minItems": 4,
+      "maxItems": 4,
+      "items": false
+    },
+    "source": {
+      "type": "object",
+      "required": [
+        "dataset_release",
+        "question_id",
+        "paper_id",
+        "work_id",
+        "questions_silver_file_sha256",
+        "source_checksums_file_sha256"
+      ],
+      "properties": {
+        "dataset_release": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9._-]+$"
+        },
+        "question_id": {"$ref": "#/$defs/questionId"},
+        "paper_id": {"$ref": "#/$defs/paperId"},
+        "work_id": {"$ref": "#/$defs/workId"},
+        "questions_silver_file_sha256": {"$ref": "#/$defs/sha256"},
+        "source_checksums_file_sha256": {"$ref": "#/$defs/sha256"}
+      },
+      "additionalProperties": false
+    },
+    "checks": {
+      "type": "object",
+      "required": [
+        "question_clear",
+        "answer_correct",
+        "answer_unique",
+        "evidence_supports_answer",
+        "page_correct",
+        "layout_location_correct"
+      ],
+      "properties": {
+        "question_clear": {"type": ["boolean", "null"]},
+        "answer_correct": {"type": ["boolean", "null"]},
+        "answer_unique": {"type": ["boolean", "null"]},
+        "evidence_supports_answer": {"type": ["boolean", "null"]},
+        "page_correct": {"type": ["boolean", "null"]},
+        "layout_location_correct": {"type": ["boolean", "null"]}
+      },
+      "additionalProperties": false
+    },
+    "revisionEvidence": {
+      "type": "object",
+      "required": [
+        "page_number",
+        "text",
+        "block_ids",
+        "bbox",
+        "bbox_normalized_top_left"
+      ],
+      "properties": {
+        "page_number": {
+          "anyOf": [{"type": "integer", "minimum": 1}, {"type": "null"}]
+        },
+        "text": {"$ref": "#/$defs/nullableString"},
+        "block_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"type": "string", "pattern": "^p[1-9][0-9]*-b[0-9]+$"}
+        },
+        "bbox": {
+          "anyOf": [{"$ref": "#/$defs/bbox"}, {"type": "null"}]
+        },
+        "bbox_normalized_top_left": {
+          "anyOf": [
+            {"$ref": "#/$defs/normalizedBbox"},
+            {"type": "null"}
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "revision": {
+      "type": "object",
+      "required": [
+        "question_type",
+        "question",
+        "answer",
+        "acceptable_answers",
+        "evidence"
+      ],
+      "properties": {
+        "question_type": {
+          "anyOf": [{"$ref": "#/$defs/questionType"}, {"type": "null"}]
+        },
+        "question": {"$ref": "#/$defs/nullableString"},
+        "answer": {"$ref": "#/$defs/nullableString"},
+        "acceptable_answers": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"type": "string", "minLength": 1}
+        },
+        "evidence": {"$ref": "#/$defs/revisionEvidence"}
+      },
+      "additionalProperties": false
+    },
+    "reviewRound": {
+      "type": "object",
+      "required": [
+        "reviewer_alias",
+        "decision",
+        "checks",
+        "issue_codes",
+        "proposed_revision",
+        "confidence",
+        "notes",
+        "reviewed_at_utc"
+      ],
+      "properties": {
+        "reviewer_alias": {"$ref": "#/$defs/nullableString"},
+        "decision": {
+          "anyOf": [
+            {"enum": ["keep", "edit", "reject", "needs_adjudication"]},
+            {"type": "null"}
+          ]
+        },
+        "checks": {"$ref": "#/$defs/checks"},
+        "issue_codes": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"$ref": "#/$defs/issueCode"}
+        },
+        "proposed_revision": {"$ref": "#/$defs/revision"},
+        "confidence": {
+          "anyOf": [{"enum": ["high", "medium", "low"]}, {"type": "null"}]
+        },
+        "notes": {
+          "anyOf": [{"type": "string"}, {"type": "null"}]
+        },
+        "reviewed_at_utc": {"$ref": "#/$defs/nullableTimestamp"}
+      },
+      "additionalProperties": false
+    },
+    "resolution": {
+      "type": "object",
+      "required": [
+        "status",
+        "resolver_alias",
+        "final_decision",
+        "final_payload_source",
+        "issue_codes",
+        "final_revision",
+        "rationale",
+        "resolved_at_utc"
+      ],
+      "properties": {
+        "status": {
+          "enum": ["not_evaluated", "not_required", "pending", "resolved"]
+        },
+        "resolver_alias": {"$ref": "#/$defs/nullableString"},
+        "final_decision": {
+          "anyOf": [{"enum": ["keep", "edit", "reject"]}, {"type": "null"}]
+        },
+        "final_payload_source": {
+          "anyOf": [
+            {"enum": ["silver", "final_revision", "none"]},
+            {"type": "null"}
+          ]
+        },
+        "issue_codes": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"$ref": "#/$defs/issueCode"}
+        },
+        "final_revision": {"$ref": "#/$defs/revision"},
+        "rationale": {
+          "anyOf": [{"type": "string"}, {"type": "null"}]
+        },
+        "resolved_at_utc": {"$ref": "#/$defs/nullableTimestamp"}
+      },
+      "additionalProperties": false
+    },
+    "goldExport": {
+      "type": "object",
+      "required": [
+        "eligible",
+        "gold_question_id",
+        "label_quality",
+        "review_status",
+        "derivation"
+      ],
+      "properties": {
+        "eligible": {"type": "boolean"},
+        "gold_question_id": {
+          "anyOf": [{"$ref": "#/$defs/goldId"}, {"type": "null"}]
+        },
+        "label_quality": {
+          "anyOf": [{"const": "human_verified_gold"}, {"type": "null"}]
+        },
+        "review_status": {
+          "anyOf": [{"enum": ["accepted", "corrected"]}, {"type": "null"}]
+        },
+        "derivation": {
+          "anyOf": [{"enum": ["unchanged", "corrected"]}, {"type": "null"}]
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}
