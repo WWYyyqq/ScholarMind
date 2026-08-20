@@ -4,7 +4,8 @@
 
 > 适用范围：ScholarMind 论文问答评测集。本文面向第一次做数据标注的开发者，目标是把程序生成的 Silver 候选问题，经过人工检查、复核和裁决，整理为可重复使用的 Gold 评测集。
 
-规范版本：`1.0-draft`。在正式 Review/Gold Schema、构建器和验证器落地前，本文规定的是人工操作协议，不代表自动化 Gold 流程已经完成。
+规范版本：`1.0`。正式 Review/Gold Schema 和确定性构建器已落地；人工查看 PDF、
+完成两轮复核与冲突裁决仍是形成 Gold 的必要条件，不能由模型或构建器代替。
 
 ## 1. 先理解三个概念
 
@@ -296,7 +297,10 @@ cd "<SCHOLARMIND_REPO>"
 
 不要用 `>>` 对同一最终文件反复追加；它会静默制造重复记录。上述检查只覆盖 JSON 语法、数量与两个 ID 的唯一性，完整字段和证据仍需未来的正式验证器检查。
 
-公开模板是教学用的草案结构，不是当前项目已有 schema 的替代品。真实标注程序上线后，还应为 Review 与 Gold 分别建立正式 JSON Schema 和验证器。
+公开模板是教学用的空结构；实际记录分别由
+`evaluation/schemas/paper_review.schema.json` 和
+`evaluation/schemas/paper_gold_question.schema.json` 验证。模板中的
+`template_notice` 不属于正式记录，冻结脚本会在生成私有 Review 时移除。
 
 ## 11. 两轮复核怎么做
 
@@ -409,4 +413,6 @@ Review 中的 `gold_export` 也必须与最终文件同步：`keep/edit` 时令 
 
 已经具备：PDF 清单与去重、开发/测试隔离、Silver 候选生成、现有数据校验、本文操作规范和公开空模板。
 
-仍需后续开发：正式 Review/Gold schema、逐题审阅界面或命令行工具、证据修改后的边界框重算、Gold 构建器与 Gold 专用验证器。因此目前应按本文手工记录，并明确标注模板为 `draft-1`，不要声称 Gold 自动化流程已经完成。
+当前已经具备正式 Review/Gold Schema、证据修改后的边界框重算、Gold 构建器和
+Gold 专用验证。仍需后续开发逐题审阅界面；在此之前按本文编辑私有 Review JSON。
+只有全部记录完成两轮人工复核与裁决并由构建器通过，才能声称形成正式 Gold。

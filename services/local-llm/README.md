@@ -27,6 +27,11 @@ SCHOLARMIND_VLLM_ENV=/path/to/ScholarMind/services/local-llm/.venv \
   ./services/local-llm/start.sh
 ```
 
+启动脚本默认把进程间 Unix Socket 放在短路径
+`/tmp/scholarmind-llm-$UID`，避免 Git worktree 的长路径超过 Linux
+`sockaddr_un` 的 107 字符限制。需要单独指定时使用
+`SCHOLARMIND_LLM_TMPDIR=/tmp/another-short-path`；不要把它设为很深的仓库目录。
+
 首次冷启动通常需要数分钟。看到 `Application startup complete` 后，在另一个
 WSL 终端执行：
 

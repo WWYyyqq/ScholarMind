@@ -57,6 +57,7 @@ jobs:
             src/scholarmind \
             tests/unit \
             tests/integration \
+            scripts/build_gold_dataset.py \
             scripts/evaluate_claim_verifier.py \
             scripts/evaluate_paper_retrieval.py \
             scripts/prepare_silver_review.py \

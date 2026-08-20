@@ -138,7 +138,7 @@ class OpenAISemanticEntailmentProvider:
                 },
             ],
             temperature=0,
-            max_tokens=256,
+            max_tokens=128,
             response_format={
                 "type": "json_schema",
                 "json_schema": {
@@ -159,7 +159,6 @@ class OpenAISemanticEntailmentProvider:
                             "supporting_indices": {
                                 "type": "array",
                                 "items": {"type": "integer", "minimum": 1},
-                                "uniqueItems": True,
                             },
                         },
                         "required": [

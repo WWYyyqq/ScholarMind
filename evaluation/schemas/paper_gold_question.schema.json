@@ -1,0 +1,158 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "paper_gold_question.schema.json",
+  "title": "ScholarMind human-verified Gold question",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "annotation_spec_version",
+    "gold_version",
+    "gold_question_id",
+    "source_question_id",
+    "paper_id",
+    "work_id",
+    "question_type",
+    "question",
+    "answer",
+    "acceptable_answers",
+    "evidence",
+    "label_quality",
+    "review_status",
+    "derivation",
+    "tuning_allowed",
+    "provenance"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "annotation_spec_version": {"const": "1.0"},
+    "gold_version": {"type": "string", "pattern": "^[A-Za-z0-9._-]+$"},
+    "gold_question_id": {"$ref": "#/$defs/goldId"},
+    "source_question_id": {"$ref": "#/$defs/questionId"},
+    "paper_id": {"$ref": "#/$defs/paperId"},
+    "work_id": {"$ref": "#/$defs/workId"},
+    "question_type": {"$ref": "#/$defs/questionType"},
+    "question": {"type": "string", "minLength": 1},
+    "answer": {"type": "string", "minLength": 1},
+    "acceptable_answers": {
+      "type": "array",
+      "maxItems": 0,
+      "items": false
+    },
+    "evidence": {"$ref": "#/$defs/evidence"},
+    "label_quality": {"const": "human_verified_gold"},
+    "review_status": {"enum": ["accepted", "corrected"]},
+    "derivation": {"enum": ["unchanged", "corrected"]},
+    "tuning_allowed": {"const": false},
+    "provenance": {"$ref": "#/$defs/provenance"}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "questionId": {"type": "string", "pattern": "^eval-[0-9a-f]{16}$"},
+    "paperId": {"type": "string", "pattern": "^paper-[0-9a-f]{16}$"},
+    "workId": {"type": "string", "pattern": "^work-[0-9a-f]{16}$"},
+    "annotationId": {
+      "type": "string",
+      "pattern": "^annotation-[0-9a-f]{16}$"
+    },
+    "goldId": {"type": "string", "pattern": "^gold-[0-9a-f]{16}$"},
+    "questionType": {
+      "enum": ["abstract_evidence", "method_section_locator"]
+    },
+    "bbox": {
+      "type": "array",
+      "prefixItems": [
+        {"type": "number"},
+        {"type": "number"},
+        {"type": "number"},
+        {"type": "number"}
+      ],
+      "minItems": 4,
+      "maxItems": 4,
+      "items": false
+    },
+    "normalizedBbox": {
+      "type": "array",
+      "prefixItems": [
+        {"type": "number", "minimum": 0, "maximum": 1},
+        {"type": "number", "minimum": 0, "maximum": 1},
+        {"type": "number", "minimum": 0, "maximum": 1},
+        {"type": "number", "minimum": 0, "maximum": 1}
+      ],
+      "minItems": 4,
+      "maxItems": 4,
+      "items": false
+    },
+    "evidence": {
+      "type": "object",
+      "required": [
+        "page_number",
+        "text",
+        "block_ids",
+        "bbox",
+        "bbox_normalized_top_left"
+      ],
+      "properties": {
+        "page_number": {"type": "integer", "minimum": 1},
+        "text": {"type": "string", "minLength": 1},
+        "block_ids": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"type": "string", "pattern": "^p[1-9][0-9]*-b[0-9]+$"}
+        },
+        "bbox": {"$ref": "#/$defs/bbox"},
+        "bbox_normalized_top_left": {"$ref": "#/$defs/normalizedBbox"}
+      },
+      "additionalProperties": false
+    },
+    "provenance": {
+      "type": "object",
+      "required": [
+        "annotation_spec",
+        "source_dataset_release",
+        "questions_silver_file_sha256",
+        "source_checksums_file_sha256",
+        "review_protocol",
+        "reviewer_count",
+        "reviewer_aliases",
+        "source_review_record_id",
+        "resolution_status",
+        "resolver_alias",
+        "resolved_at_utc"
+      ],
+      "properties": {
+        "annotation_spec": {
+          "const": "docs/evaluation/paper-dataset/silver-to-gold.md"
+        },
+        "source_dataset_release": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9._-]+$"
+        },
+        "questions_silver_file_sha256": {"$ref": "#/$defs/sha256"},
+        "source_checksums_file_sha256": {"$ref": "#/$defs/sha256"},
+        "review_protocol": {
+          "enum": [
+            "single_reviewer_interval_recheck",
+            "independent_two_reviewer"
+          ]
+        },
+        "reviewer_count": {"type": "integer", "minimum": 1, "maximum": 2},
+        "reviewer_aliases": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 2,
+          "uniqueItems": true,
+          "items": {"type": "string", "minLength": 1}
+        },
+        "source_review_record_id": {"$ref": "#/$defs/annotationId"},
+        "resolution_status": {"enum": ["not_required", "resolved"]},
+        "resolver_alias": {
+          "anyOf": [{"type": "string", "minLength": 1}, {"type": "null"}]
+        },
+        "resolved_at_utc": {"type": "string", "format": "date-time"}
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

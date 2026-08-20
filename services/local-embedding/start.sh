@@ -6,7 +6,7 @@ embedding_project_root="$(cd -- "${embedding_service_dir}/../.." && pwd)"
 embedding_vllm_env="${SCHOLARMIND_VLLM_ENV:-${embedding_project_root}/services/local-llm/.venv}"
 embedding_model_dir="${SCHOLARMIND_EMBEDDING_MODEL_DIR:-/mnt/d/ScholarMindLocalLLM/models/Qwen3-Embedding-0.6B-modelscope}"
 embedding_port="${SCHOLARMIND_EMBEDDING_PORT:-8001}"
-embedding_gpu_utilization="${SCHOLARMIND_EMBEDDING_GPU_MEMORY_UTILIZATION:-0.15}"
+embedding_gpu_utilization="${SCHOLARMIND_EMBEDDING_GPU_MEMORY_UTILIZATION:-0.18}"
 embedding_tmpdir="${SCHOLARMIND_EMBEDDING_TMPDIR:-/tmp/scholarmind-embedding-${UID}}"
 
 if [[ ! -x "${embedding_vllm_env}/bin/vllm" ]]; then

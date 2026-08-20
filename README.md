@@ -103,8 +103,8 @@ GraphRAG、Kubernetes、多租户、第二个本地模型等功能不进入 `v0.
 | 2 | Day 8 · 8/6 | 混合检索、质量门与 Qwen Rerank | ✅ 已加速完成 |
 | 2 | Day 9 · 8/15 | 接入 ScholarMind Agent 与 LangGraph API | ✅ 已加速完成 |
 | 2 | Day 10 · 8/16 | 真实 API 闭环、准确性加固与运行自检 | ✅ 已加速完成 |
-| 2 | Day 11 · 8/9 | 模型测试与 Fixture | 计划 |
-| 2 | Day 12 · 8/10 | PostgreSQL 与 pgvector | 计划 |
+| 2 | Day 11 · 8/17 | 语义证据验证与真实 Qwen 全栈验收 | ✅ 完成，PR #13 待 CI |
+| 2 | Day 12 · 8/20 | 正式 Review/Gold Schema 与确定性 Gold 构建器 | ✅ 本地实现与回归完成，PR #13 待 CI |
 | 2 | Day 13 · 8/11 | 网页来源注册与快照 | 计划 |
 | 2 | Day 14 · 8/12 | 网页 Evidence 闭环 | 计划 |
 | 3 | Day 15 · 8/13 | 安全文件上传 | 计划 |
@@ -228,6 +228,11 @@ Qwen3-14B 判断同义改写、关系方向与多段证据。只有达到置信�
 .venv/bin/python scripts/evaluate_claim_verifier.py --mode deterministic
 .venv/bin/python scripts/evaluate_claim_verifier.py --mode semantic
 ```
+
+在 8 条公开合成冒烟案例上，确定性模式为 62.50% accuracy / 100% publication
+precision / 33.33% publication recall；本机 Qwen3-14B-AWQ 语义模式实测为
+100% / 100% / 100%。该小集合用于覆盖硬门、同义改写、关系反转与多证据回归，
+不是论文 Gold 集，也不代表生产事实准确率；正式效果必须在人工复核 Gold 上报告。
 
 Copy `.env.example` to `.env` when configuring a new checkout. Never commit
 `.env`; it is ignored by Git.
