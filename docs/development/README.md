@@ -28,7 +28,7 @@
 | Day 9 | 2026-08-15 | 公共 Research Service、LangGraph Agent 与 API | ✅ 完成并合并 | [详细日志](daily/2026-08-15-day-09.md) | `4cd9884` |
 | Day 10 | 2026-08-16 | 真实 API 闭环、准确性加固与运行自检 | ✅ 完成 | [详细日志](daily/2026-08-16-day-10.md) | PR #11 · `4f81700` |
 | Day 11 | 2026-08-17 | 语义证据验证、可重复评测与 Silver 复核工具 | ✅ 代码、CI 与真实本地 Qwen 全栈验收完成 | [详细日志](daily/2026-08-17-day-11.md) | PR #12 + PR #13 |
-| Day 12 | 2026-08-20 | 正式 Review/Gold Schema、证据重算与 Gold 构建器 | ✅ 本地实现与完整单元回归完成，PR #13 待 CI | [详细日志](daily/2026-08-20-day-12.md) | PR #13 |
+| Day 12 | 2026-08-20 | 正式 Review/Gold Schema、证据重算与 Gold 构建器 | ✅ PR #13 已合并，main CI 通过 | [详细日志](daily/2026-08-20-day-12.md) | PR #13 · `9e6de79` |
 
 ## 专项记录
 
